@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wsl.exe -e bash -lc \"cd ~/projects/Farol-Car-Configurator && npx tsc -b 2>&1 | head -30 && echo '---LINT---' && npm run lint 2>&1 | tail -20 && echo '---TEST---' && npm test 2>&1 | tail -15\")"
+    ]
+  }
+}
