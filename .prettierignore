@@ -1,0 +1,9 @@
+dist
+coverage
+package-lock.json
+*.md
+
+# local-only, not ours to reformat
+docs/
+reference/
+CLAUDE.md
