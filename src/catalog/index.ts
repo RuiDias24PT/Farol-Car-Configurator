@@ -1,4 +1,13 @@
-import type { Body, Colour, Package, Powertrain, Wheel } from './types'
+import type {
+  Body,
+  Colour,
+  Config,
+  Package,
+  Powertrain,
+  StepId,
+  Wheel,
+  WheelId,
+} from './types'
 
 export const BODIES = [
   {
@@ -171,3 +180,29 @@ export const PACKAGES = [
   { id: 'sound', price: 1_900, needsTowCapableBody: false },
   { id: 'tow', price: 1_150, needsTowCapableBody: true },
 ] as const satisfies readonly Package[]
+
+// The funnel, in order. The URL carries the step as this array's index.
+export const STEPS = [
+  'body',
+  'powertrain',
+  'colour',
+  'wheels',
+  'packages',
+  'summary',
+] as const satisfies readonly StepId[]
+
+// Every correction the engine makes to the wheels lands here, so this wheel
+// has to stay free and unrestricted: one that cost money would quietly make a
+// corrected car more expensive than the one the user asked for, and one with
+// requirements of its own could be corrected in turn — rules 1 and 2 would
+// chase each other. Both are tests, not hopes.
+export const FALLBACK_WHEEL = 'sport20' satisfies WheelId
+
+export const DEFAULT_CONFIG = {
+  body: 'serra',
+  powertrain: 'ice',
+  colour: 'porcelain',
+  wheels: FALLBACK_WHEEL,
+  packages: [],
+  step: 'body',
+} as const satisfies Config
