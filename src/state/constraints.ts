@@ -12,6 +12,7 @@ import {
 import type {
   Body,
   BodyId,
+  Colour,
   Config,
   Package,
   PackageId,
@@ -67,23 +68,25 @@ const DEFAULT_POWERTRAIN: Powertrain = pick(
   POWERTRAINS,
   DEFAULT_CONFIG.powertrain,
 )
+const DEFAULT_COLOUR: Colour = pick(COLOURS, DEFAULT_CONFIG.colour)
 const FALLBACK: Wheel = pick(WHEELS, FALLBACK_WHEEL)
 
-interface Resolved {
+export interface Resolved {
   config: Config
   body: Body
   powertrain: Powertrain
+  colour: Colour
   wheels: Wheel
   packages: readonly Package[]
 }
 
-function resolve(config: Config | null | undefined): Resolved {
+export function resolve(config: Config | null | undefined): Resolved {
   const raw = config ?? DEFAULT_CONFIG
 
   const body = byId(BODIES, raw.body) ?? DEFAULT_BODY
   const powertrain = byId(POWERTRAINS, raw.powertrain) ?? DEFAULT_POWERTRAIN
+  const colour = byId(COLOURS, raw.colour) ?? DEFAULT_COLOUR
   const wheels = byId(WHEELS, raw.wheels) ?? FALLBACK
-  const colour = byId(COLOURS, raw.colour)?.id ?? DEFAULT_CONFIG.colour
   const step = STEPS.includes(raw.step) ? raw.step : DEFAULT_CONFIG.step
 
   const listed = Array.isArray(raw.packages) ? raw.packages : []
@@ -97,7 +100,7 @@ function resolve(config: Config | null | undefined): Resolved {
     body.id === raw.body &&
     powertrain.id === raw.powertrain &&
     wheels.id === raw.wheels &&
-    colour === raw.colour &&
+    colour.id === raw.colour &&
     step === raw.step &&
     Array.isArray(raw.packages) &&
     packages.length === listed.length
@@ -108,13 +111,14 @@ function resolve(config: Config | null | undefined): Resolved {
       : {
           body: body.id,
           powertrain: powertrain.id,
-          colour,
+          colour: colour.id,
           wheels: wheels.id,
           packages: packages.map((pkg) => pkg.id),
           step,
         },
     body,
     powertrain,
+    colour,
     wheels,
     packages,
   }
