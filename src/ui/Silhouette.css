@@ -1,0 +1,25 @@
+/* Ink comes from the container via `currentColor`, so a selected card can tint
+ * its own silhouette without this file knowing anything about cards. */
+
+.silhouette {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.silhouette-wheel {
+  fill: currentColor;
+  opacity: 0.22;
+}
+
+.silhouette-body {
+  fill: currentColor;
+  opacity: 0.85;
+}
+
+/* Painted in the card's own background so it reads as a gap, not a line. */
+.silhouette-arch {
+  fill: none;
+  stroke: var(--panel-2);
+  stroke-width: 7;
+}
