@@ -49,7 +49,7 @@ describe('hashFor', () => {
 })
 
 describe('parseHash', () => {
-  it('reads a full hash back', () => {
+  it('parses a complete six-field hash into a config', () => {
     expect(parseHash('#/vela/ev/carmine/multi21/assist,tow/summary')).toEqual({
       body: 'vela',
       powertrain: 'ev',

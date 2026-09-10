@@ -154,7 +154,7 @@ describe('reconcile — each rule', () => {
 /* ---------- invariants over every configuration ---------- */
 
 describe('reconcile — invariants across all 576 configurations', () => {
-  it('covers the whole product', () => {
+  it('enumerates all 576 rule-relevant configurations', () => {
     expect(ALL_CONFIGS).toHaveLength(576)
   })
 
@@ -302,7 +302,7 @@ describe('addPackage', () => {
     expect(notes).toHaveLength(1)
   })
 
-  it('adds a package that conflicts with nothing without a word', () => {
+  it('adds a conflict-free package and emits no note', () => {
     const config = configFor({ packages: ['winter'] })
     const result = addPackage(config, 'sound')
 

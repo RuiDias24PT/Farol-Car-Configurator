@@ -11,7 +11,7 @@ function stateFor(fields: Partial<Config>): StoreState {
 }
 
 describe('initStore', () => {
-  it('takes the default config unchanged and says nothing about it', () => {
+  it('passes the default config through untouched, with no notes', () => {
     const state = initStore()
 
     expect(state.config).toEqual(DEFAULT_CONFIG)

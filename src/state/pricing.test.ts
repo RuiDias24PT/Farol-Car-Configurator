@@ -23,11 +23,11 @@ const priceOf = {
 /* ---------- total ---------- */
 
 describe('total', () => {
-  it('is the base price alone for the default configuration', () => {
+  it('equals the body base price alone for the default configuration', () => {
     expect(total(DEFAULT_CONFIG)).toBe(46_900)
   })
 
-  it('adds every chosen option', () => {
+  it('adds the body base price and every chosen option surcharge', () => {
     const config = configFor({
       powertrain: 'ev',
       colour: 'carmine',
@@ -38,21 +38,21 @@ describe('total', () => {
     expect(total(config)).toBe(63_950)
   })
 
-  it('counts a package listed twice only once', () => {
+  it('counts a package listed twice in the config only once', () => {
     const once = configFor({ packages: ['assist'] })
     const twice = configFor({ packages: ['assist', 'assist'] as PackageId[] })
 
     expect(total(twice)).toBe(total(once))
   })
 
-  it('prices the config on its face — it does not reconcile first', () => {
+  it('prices the config as given and does not reconcile illegal option pairs first', () => {
     // aero19 on a combustion car is an illegal pair reconcile would drop, but
     const illegal = configFor({ powertrain: 'ice', wheels: 'aero19' })
 
     expect(total(illegal)).toBe(46_900 + priceOf.wheels('aero19'))
   })
 
-  it('never throws on a hand-edited hash, and returns a number', () => {
+  it('returns a finite number and never throws on a malformed hand-edited config', () => {
     const garbage: unknown[] = [
       undefined,
       null,
@@ -74,7 +74,7 @@ describe('total', () => {
 /* ---------- lines ---------- */
 
 describe('lines', () => {
-  it('lists body, powertrain, colour, wheels, then the packages in order', () => {
+  it('returns body, powertrain, colour and wheels, then packages in config order', () => {
     const config = configFor({
       powertrain: 'ev',
       colour: 'petrol',
@@ -92,7 +92,7 @@ describe('lines', () => {
     ])
   })
 
-  it('keeps the zero-price slots — the summary decides what to hide', () => {
+  it('keeps a row for each core slot even when its price is zero', () => {
     const rows = lines(DEFAULT_CONFIG)
 
     expect(rows).toHaveLength(4)
@@ -109,7 +109,7 @@ describe('lines', () => {
     })
   })
 
-  it('drops a package listed twice, like resolve does', () => {
+  it('emits one row for a package listed twice, like reconcile does', () => {
     const rows = lines(configFor({ packages: ['assist', 'assist'] as PackageId[] }))
     const packageRows = rows.filter((r) => r.source === 'package')
 
@@ -118,7 +118,7 @@ describe('lines', () => {
     ])
   })
 
-  it('sums to exactly total, for every body/powertrain/colour/wheels combo', () => {
+  it('row prices sum to total for every body/powertrain/colour/wheels combination', () => {
     for (const body of BODIES) {
       for (const powertrain of POWERTRAINS) {
         for (const colour of COLOURS) {
@@ -143,18 +143,18 @@ describe('lines', () => {
 /* ---------- formatEUR ---------- */
 
 describe('formatEUR', () => {
-  it('groups a five-digit price in every locale', () => {
+  it('groups thousands and places the euro sign per the active locale', () => {
     expect(plain(formatEUR(46_900, 'pt-PT'))).toBe('46 900 €')
     expect(plain(formatEUR(46_900, 'de-DE'))).toBe('46.900 €')
     expect(plain(formatEUR(46_900, 'en-GB'))).toBe('€46,900')
   })
 
-  it('shows no fraction digits', () => {
+  it('shows no fraction digits, including for a zero price', () => {
     expect(plain(formatEUR(1_250, 'de-DE'))).toBe('1.250 €')
     expect(plain(formatEUR(0, 'en-GB'))).toBe('€0')
   })
 
-  it('groups four-digit prices too, not just five', () => {
+  it('groups thousands for four-digit prices, not only five-digit ones', () => {
     expect(plain(formatEUR(1_850, 'pt-PT'))).toBe('1 850 €')
     expect(plain(formatEUR(1_850, 'de-DE'))).toBe('1.850 €')
     expect(plain(formatEUR(1_850, 'en-GB'))).toBe('€1,850')
@@ -164,18 +164,18 @@ describe('formatEUR', () => {
 /* ---------- formatNumber ---------- */
 
 describe('formatNumber', () => {
-  it('holds the fraction digits exactly at the requested count', () => {
+  it('emits exactly the requested number of fraction digits', () => {
     expect(formatNumber(6.9, 1, 'pt-PT')).toBe('6,9')
     expect(formatNumber(5.6, 1, 'de-DE')).toBe('5,6')
     expect(formatNumber(190, 0, 'pt-PT')).toBe('190')
     expect(formatNumber(340, 0, 'en-GB')).toBe('340')
   })
 
-  it('rounds to the requested precision', () => {
+  it('rounds to the requested number of fraction digits', () => {
     expect(formatNumber(17.84, 1, 'en-GB')).toBe('17.8')
   })
 
-  it('follows the locale decimal separator', () => {
+  it('uses the decimal separator of the active locale', () => {
     expect(formatNumber(1.4, 1, 'de-DE')).toBe('1,4')
     expect(formatNumber(1.4, 1, 'en-GB')).toBe('1.4')
   })

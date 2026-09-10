@@ -19,7 +19,7 @@ describe('catalog', () => {
   // Adding `tow` to a body that cannot tow swaps to the first body
   // that can. With no such body that search yields undefined and the engine
   // throws in the one place it is supposed to be helpful.
-  it('at least one body can tow', () => {
+  it('includes a tow-capable body for addPackage to fall back to', () => {
     expect(BODIES.some((body) => body.canTow)).toBe(true)
   })
 
