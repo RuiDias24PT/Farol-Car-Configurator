@@ -181,7 +181,9 @@ export const PACKAGES = [
   { id: 'tow', price: 1_150, needsTowCapableBody: true },
 ] as const satisfies readonly Package[]
 
-// The funnel, in order. The URL carries the step as this array's index.
+// The funnel, in order. The URL carries the step by id, not by index into this
+// array: an index would freeze the order forever, since inserting a step would
+// silently repoint every link already shared.
 export const STEPS = [
   'body',
   'powertrain',
