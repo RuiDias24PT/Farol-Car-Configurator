@@ -1,0 +1,113 @@
+:root {
+  color-scheme: light;
+
+  --font-display: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Roboto', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, monospace;
+
+  --bg: #e4e8ea;
+  --stage: #c4ccd1;
+  --stage-2: #dce3e7;
+  --panel: #fdfefe;
+  --panel-2: #eef2f4;
+  --ink: #14181b;
+  --ink-2: #5b666e;
+  --ink-3: #8c979e;
+  --line: #d5dce0;
+  --line-2: #bcc6cc;
+  --accent: #a6202b;
+  --accent-2: #c42c38;
+  --accent-tint: #fbedee;
+  --on-accent: #ffffff;
+  --ok: #1c7a5e;
+  --warn: #9a6410;
+  --warn-tint: #fbf0dc;
+  --glass-1: #a9bcc8;
+  --glass-2: #92a7b5;
+  --glass-3: #6b8291;
+  --shadow: 0 1px 2px rgba(20, 24, 27, 0.05), 0 12px 32px rgba(20, 24, 27, 0.08);
+}
+
+/* Dark palette, kept in one place and applied by both selectors below. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --bg: #0e1215;
+    --stage: #161c21;
+    --stage-2: #1c2429;
+    --panel: #151a1e;
+    --panel-2: #1b2226;
+    --ink: #e6eaec;
+    --ink-2: #97a3aa;
+    --ink-3: #6c777e;
+    --line: #262f35;
+    --line-2: #333e45;
+    --accent: #e4646e;
+    --accent-2: #f07a83;
+    --accent-tint: #2a1518;
+    --on-accent: #12171a;
+    --ok: #4fbe9c;
+    --warn: #d9a052;
+    --warn-tint: #2c2113;
+    --glass-1: #47585f;
+    --glass-2: #3a4a54;
+    --glass-3: #26343c;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 38px rgba(0, 0, 0, 0.45);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0e1215;
+  --stage: #161c21;
+  --stage-2: #1c2429;
+  --panel: #151a1e;
+  --panel-2: #1b2226;
+  --ink: #e6eaec;
+  --ink-2: #97a3aa;
+  --ink-3: #6c777e;
+  --line: #262f35;
+  --line-2: #333e45;
+  --accent: #e4646e;
+  --accent-2: #f07a83;
+  --accent-tint: #2a1518;
+  --on-accent: #12171a;
+  --ok: #4fbe9c;
+  --warn: #d9a052;
+  --warn-tint: #2c2113;
+  --glass-1: #47585f;
+  --glass-2: #3a4a54;
+  --glass-3: #26343c;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 38px rgba(0, 0, 0, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The 3D camera moves and the price tween honour this in code; kill CSS motion
+ * here so hover/menu transitions do too. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+:where(button, input, a):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

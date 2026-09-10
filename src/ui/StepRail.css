@@ -1,0 +1,67 @@
+/* The funnel tabs, pinned under the masthead inside the sticky header. */
+
+.steps {
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.steps-inner {
+  max-width: 1720px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 2.4vw, 40px);
+  display: flex;
+  overflow-x: auto;
+}
+
+.step-btn {
+  flex: 1;
+  min-width: 116px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 11px 8px 9px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  white-space: nowrap;
+}
+.step-btn:hover {
+  color: var(--ink-2);
+}
+.step-btn.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+.step-btn.is-done {
+  color: var(--ink-2);
+}
+
+.step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  flex-shrink: 0;
+}
+.step-btn.is-active .step-num {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.step-btn.is-done .step-num {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.step-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
