@@ -34,6 +34,8 @@ export const de = {
     copied: 'Kopiert',
     reserveNote: 'Prototyp: die Reservierung endet hier.',
     linkFixed: 'Link angepasst:',
+    shareLink: 'Link zu dieser Konfiguration',
+    dismiss: 'Hinweis schließen',
   },
 
   views: { front: '3/4 vorn', side: 'Profil', rear: '3/4 hinten', top: 'hoch' },

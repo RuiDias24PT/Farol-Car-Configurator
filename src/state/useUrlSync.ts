@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 
+import type { Config } from '@/catalog/types'
+
 import { hashFor, parseHash } from './url'
 import { useConfig, useDispatch } from './useStore'
 
@@ -41,6 +43,12 @@ export function useUrlSync(): string {
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [dispatch])
 
+  return shareUrlFor(config)
+}
+
+/** Lives here because this file is the only one allowed to read `location`.
+ *  The hash comes from state, never from the address bar, which can lag behind. */
+export function shareUrlFor(config: Config): string {
   const { origin, pathname, search } = window.location
   return `${origin}${pathname}${search}${hashFor(config)}`
 }

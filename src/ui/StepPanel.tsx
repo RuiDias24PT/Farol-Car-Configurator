@@ -1,8 +1,12 @@
+import { useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
-import { useT } from '@/i18n/useT'
+import { useLang, useT } from '@/i18n/useT'
+import { formatEUR, total } from '@/state/pricing'
 import { useSteps } from '@/state/useSteps'
+import { useConfig } from '@/state/useStore'
 
+import { NotesStrip } from './NotesStrip'
 import './StepPanel.css'
 
 interface StepPanelProps {
@@ -11,7 +15,11 @@ interface StepPanelProps {
 
 export function StepPanel({ children }: StepPanelProps) {
   const t = useT()
+  const { intl } = useLang()
+  const config = useConfig()
   const { current, prev, next, go } = useSteps()
+  const [reserved, setReserved] = useState(false)
+  const body = useRef<HTMLDivElement>(null)
 
   const copy = t.steps[current]
 
@@ -22,27 +30,48 @@ export function StepPanel({ children }: StepPanelProps) {
         <p>{copy.blurb}</p>
       </div>
 
-      <div className="panel-body">{children}</div>
+      <NotesStrip onDismissed={() => body.current?.focus()} />
+
+      {/* Keyed by step so each step opens scrolled to the top instead of
+          inheriting the previous step's scroll position. tabIndex -1 makes it a
+          focus target for code (NotesStrip) without adding a Tab stop. */}
+      <div className="panel-body" key={current} ref={body} tabIndex={-1}>
+        {children}
+      </div>
+
+      {!next && reserved && (
+        <p className="reserve-note" role="status">
+          {t.ui.reserveNote}
+        </p>
+      )}
 
       <div className="panel-foot">
-        <button
-          className="btn btn-ghost"
-          type="button"
-          disabled={!prev}
-          onClick={() => prev && go(prev)}
-        >
-          {t.ui.back}
-        </button>
-        {/* On the last step this becomes the Reserve CTA. It stays inert until
-            M9 gives it the reserveNote panel to open. */}
-        <button
-          className="btn btn-primary"
-          type="button"
-          disabled={!next}
-          onClick={() => next && go(next)}
-        >
-          {next ? t.ui.next : t.ui.reserve}
-        </button>
+        {prev && (
+          <button
+            className="btn btn-ghost"
+            type="button"
+            onClick={() => go(prev)}
+          >
+            {t.ui.back}
+          </button>
+        )}
+        {next ? (
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={() => go(next)}
+          >
+            {t.ui.next} · {t.steps[next].tab}
+          </button>
+        ) : (
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={() => setReserved(true)}
+          >
+            {t.ui.reserve} · {formatEUR(total(config), intl)}
+          </button>
+        )}
       </div>
     </aside>
   )

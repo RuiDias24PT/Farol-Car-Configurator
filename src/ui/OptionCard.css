@@ -1,0 +1,173 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 12px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.card:hover:not(.is-blocked) {
+  border-color: var(--line-2);
+}
+.card.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+/* Dimmed but still focusable — see the aria-disabled note in OptionCard.tsx. */
+.card.is-blocked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.card-media {
+  width: 66px;
+  flex-shrink: 0;
+  color: var(--ink);
+}
+
+.swatch {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid var(--line-2);
+}
+
+.card-title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.card-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.card-price {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.card-line {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.tags > span {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--ink-2);
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  padding: 2px 6px;
+}
+
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.spec-grid > span {
+  background: var(--panel);
+  padding: 7px 8px;
+}
+.spec-grid b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+}
+.spec-grid b + span {
+  font-family: var(--font-mono);
+  font-size: 0.54rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.contents {
+  display: flex;
+  flex-direction: column;
+}
+.contents > span {
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  padding-left: 15px;
+  position: relative;
+}
+.contents > span::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0.62em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--line-2);
+}
+
+/* Round for pick-one, square for pick-any — the same convention as native
+ * radios and checkboxes. */
+.mark {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  position: relative;
+  border-radius: 50%;
+  border: 1.6px solid var(--line-2);
+}
+.card.is-multi .mark {
+  border-radius: 5px;
+}
+.card.is-selected .mark {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.card.is-selected .mark::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--panel);
+  border-width: 0 1.8px 1.8px 0;
+  transform: rotate(42deg);
+}
