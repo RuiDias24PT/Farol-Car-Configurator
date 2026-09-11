@@ -64,7 +64,9 @@ export function formatBlocked(locale: Locale, note: Note): string {
     case 'wheelsNeedBigBody':
       return b.wheelsNeedBigBody(bodyRef(locale, note.body))
     case 'packageBlockedByWheels':
-      return b.packageBlockedByWheels({ wheel: wheelLabel(locale, note.wheels) })
+      return b.packageBlockedByWheels({
+        wheel: wheelLabel(locale, note.wheels),
+      })
     case 'packageNeedsTowBody':
       return b.packageNeedsTowBody(bodyRef(locale, note.body))
     default:

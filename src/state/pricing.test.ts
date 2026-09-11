@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { BODIES, COLOURS, DEFAULT_CONFIG, PACKAGES, POWERTRAINS, WHEELS } from '@/catalog'
+import {
+  BODIES,
+  COLOURS,
+  DEFAULT_CONFIG,
+  PACKAGES,
+  POWERTRAINS,
+  WHEELS,
+} from '@/catalog'
 import type { Config, PackageId } from '@/catalog/types'
 
 import { formatEUR, formatNumber, lines, total } from './pricing'
@@ -110,7 +117,9 @@ describe('lines', () => {
   })
 
   it('emits one row for a package listed twice, like reconcile does', () => {
-    const rows = lines(configFor({ packages: ['assist', 'assist'] as PackageId[] }))
+    const rows = lines(
+      configFor({ packages: ['assist', 'assist'] as PackageId[] }),
+    )
     const packageRows = rows.filter((r) => r.source === 'package')
 
     expect(packageRows).toEqual([

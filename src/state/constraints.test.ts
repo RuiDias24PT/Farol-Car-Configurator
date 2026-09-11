@@ -56,7 +56,6 @@ const label = (config: Config) =>
     config.packages.join(',') || '-',
   ].join('/')
 
-
 function brokenRules(config: Config): string[] {
   const body: Body = BODIES.find((item) => item.id === config.body)!
   const powertrain: Powertrain = POWERTRAINS.find(

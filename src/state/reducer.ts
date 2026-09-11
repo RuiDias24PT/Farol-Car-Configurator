@@ -29,7 +29,6 @@ export type Action =
   | { type: 'reset' }
   | { type: 'dismissNotes' }
 
-
 type ConfigAction = Exclude<Action, { type: 'dismissNotes' }>
 
 const NO_NOTES: readonly Note[] = Object.freeze([])

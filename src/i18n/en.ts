@@ -161,7 +161,11 @@ export const en = {
   packages: {
     winter: {
       label: 'Winter pack',
-      contents: ['All-wheel drive', 'Heated seats and steering wheel', 'Heat pump'],
+      contents: [
+        'All-wheel drive',
+        'Heated seats and steering wheel',
+        'Heat pump',
+      ],
     },
     assist: {
       label: 'Advanced assist',

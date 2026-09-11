@@ -173,7 +173,11 @@ export const de = {
     },
     sound: {
       label: 'Premium-Audio',
-      contents: ['16 Lautsprecher, 1.400 W', '3D-Klang', 'Geräuschunterdrückung'],
+      contents: [
+        '16 Lautsprecher, 1.400 W',
+        '3D-Klang',
+        'Geräuschunterdrückung',
+      ],
     },
     tow: {
       label: 'Anhängerkupplung',

@@ -25,7 +25,8 @@
   --glass-1: #a9bcc8;
   --glass-2: #92a7b5;
   --glass-3: #6b8291;
-  --shadow: 0 1px 2px rgba(20, 24, 27, 0.05), 0 12px 32px rgba(20, 24, 27, 0.08);
+  --shadow:
+    0 1px 2px rgba(20, 24, 27, 0.05), 0 12px 32px rgba(20, 24, 27, 0.08);
 }
 
 /* Dark palette, kept in one place and applied by both selectors below. */

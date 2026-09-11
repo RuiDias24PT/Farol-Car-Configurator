@@ -1,10 +1,5 @@
 import type { BodyGeo } from '@/catalog/types'
-import {
-  archPath,
-  bodyPath,
-  VIEW_BOX,
-  wheelCentreY,
-} from '@/geometry/bodyPath'
+import { archPath, bodyPath, VIEW_BOX, wheelCentreY } from '@/geometry/bodyPath'
 
 import './Silhouette.css'
 

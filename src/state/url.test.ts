@@ -105,11 +105,15 @@ describe('parseHash', () => {
   it('ignores segments past the sixth', () => {
     const long = '#/vela/ev/carmine/sport20/-/summary/junk/more/still-more'
 
-    expect(parseHash(long)).toEqual(parseHash('#/vela/ev/carmine/sport20/-/summary'))
+    expect(parseHash(long)).toEqual(
+      parseHash('#/vela/ev/carmine/sport20/-/summary'),
+    )
   })
 
   it('drops unknown packages and keeps the known ones', () => {
-    const parsed = parseHash('#/serra/ice/porcelain/sport20/jetpack,winter/body')
+    const parsed = parseHash(
+      '#/serra/ice/porcelain/sport20/jetpack,winter/body',
+    )
 
     expect(parsed.packages).toEqual(['winter'])
   })
@@ -117,12 +121,18 @@ describe('parseHash', () => {
   it('reads an empty or dashed package slot as no packages', () => {
     const seed = configFor({ packages: ['assist'] })
 
-    expect(parseHash('#/serra/ice/porcelain/sport20/-/body', seed).packages).toEqual([])
-    expect(parseHash('#/serra/ice/porcelain/sport20//body', seed).packages).toEqual([])
+    expect(
+      parseHash('#/serra/ice/porcelain/sport20/-/body', seed).packages,
+    ).toEqual([])
+    expect(
+      parseHash('#/serra/ice/porcelain/sport20//body', seed).packages,
+    ).toEqual([])
   })
 
   it('sorts and deduplicates a hand-written package list', () => {
-    const parsed = parseHash('#/serra/ice/porcelain/sport20/winter,assist,winter/body')
+    const parsed = parseHash(
+      '#/serra/ice/porcelain/sport20/winter,assist,winter/body',
+    )
 
     expect(parsed.packages).toEqual(['assist', 'winter'])
   })
@@ -143,9 +153,18 @@ describe('parseHash', () => {
       expect(() => parseHash(hash), hash).not.toThrow()
 
       const parsed = parseHash(hash)
-      expect(BODIES.some((b) => b.id === parsed.body), hash).toBe(true)
-      expect(POWERTRAINS.some((p) => p.id === parsed.powertrain), hash).toBe(true)
-      expect(WHEELS.some((w) => w.id === parsed.wheels), hash).toBe(true)
+      expect(
+        BODIES.some((b) => b.id === parsed.body),
+        hash,
+      ).toBe(true)
+      expect(
+        POWERTRAINS.some((p) => p.id === parsed.powertrain),
+        hash,
+      ).toBe(true)
+      expect(
+        WHEELS.some((w) => w.id === parsed.wheels),
+        hash,
+      ).toBe(true)
       expect(STEPS.includes(parsed.step), hash).toBe(true)
     }
   })
@@ -191,7 +210,8 @@ describe('round trip', () => {
    * the identical string. `toBe`, because this one compares strings.
    */
   it('normalises garbage to a fixed point', () => {
-    const canonical = (hash: string) => hashFor(reconcile(parseHash(hash)).config)
+    const canonical = (hash: string) =>
+      hashFor(reconcile(parseHash(hash)).config)
 
     const hashes = [
       '',

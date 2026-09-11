@@ -3,11 +3,7 @@ import type { Config } from '@/catalog/types'
 import { resolve } from './constraints'
 
 export type PriceSource =
-  | 'body'
-  | 'powertrain'
-  | 'colour'
-  | 'wheels'
-  | 'package'
+  'body' | 'powertrain' | 'colour' | 'wheels' | 'package'
 
 export interface PriceLine {
   source: PriceSource
@@ -23,13 +19,11 @@ export function lines(config: Config): readonly PriceLine[] {
     { source: 'powertrain', id: powertrain.id, price: powertrain.price },
     { source: 'colour', id: colour.id, price: colour.price },
     { source: 'wheels', id: wheels.id, price: wheels.price },
-    ...packages.map(
-      (pkg): PriceLine => ({
-        source: 'package',
-        id: pkg.id,
-        price: pkg.price,
-      }),
-    ),
+    ...packages.map((pkg): PriceLine => ({
+      source: 'package',
+      id: pkg.id,
+      price: pkg.price,
+    })),
   ]
 }
 

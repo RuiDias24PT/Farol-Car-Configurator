@@ -46,12 +46,27 @@ describe('locale shape', () => {
 // --- constraint messages -----------------------------------------------------
 
 const SAMPLE_NOTES: readonly Note[] = [
-  { code: 'wheelsNeedElectrified', wheels: 'aero19', powertrain: 'ice', to: 'sport20' },
-  { code: 'wheelsNeedBigBody', wheels: 'multi21', body: 'bairro', to: 'sport20' },
+  {
+    code: 'wheelsNeedElectrified',
+    wheels: 'aero19',
+    powertrain: 'ice',
+    to: 'sport20',
+  },
+  {
+    code: 'wheelsNeedBigBody',
+    wheels: 'multi21',
+    body: 'bairro',
+    to: 'sport20',
+  },
   { code: 'packageBlockedByWheels', pkg: 'tow', wheels: 'multi21' },
   { code: 'packageNeedsTowBody', pkg: 'tow', body: 'solar' },
   { code: 'bodySwappedForPackage', pkg: 'tow', from: 'solar', to: 'serra' },
-  { code: 'wheelsSwappedForPackage', pkg: 'tow', from: 'multi21', to: 'sport20' },
+  {
+    code: 'wheelsSwappedForPackage',
+    pkg: 'tow',
+    from: 'multi21',
+    to: 'sport20',
+  },
 ]
 
 describe('formatNote', () => {
@@ -114,7 +129,11 @@ describe('formatBlocked', () => {
 
   it('names the body it is blocked on', () => {
     expect(
-      formatBlocked(pt, { code: 'packageNeedsTowBody', pkg: 'tow', body: 'solar' }),
+      formatBlocked(pt, {
+        code: 'packageNeedsTowBody',
+        pkg: 'tow',
+        body: 'solar',
+      }),
     ).toContain('no Solar')
   })
 

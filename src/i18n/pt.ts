@@ -198,7 +198,11 @@ export const pt = {
   packages: {
     winter: {
       label: 'Pacote Inverno',
-      contents: ['Tração integral', 'Bancos e volante aquecidos', 'Bomba de calor'],
+      contents: [
+        'Tração integral',
+        'Bancos e volante aquecidos',
+        'Bomba de calor',
+      ],
     },
     assist: {
       label: 'Assistência Avançada',
