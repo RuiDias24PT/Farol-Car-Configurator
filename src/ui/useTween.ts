@@ -19,8 +19,6 @@ const easeOut = (t: number): number => 1 - (1 - t) ** 3
 export function useTween(target: number): number {
   const [shown, setShown] = useState(target)
 
-  // The value on screen right now, readable from inside an effect without
-  // making the effect depend on it (which would restart it on every frame).
   const shownRef = useRef(target)
 
   useEffect(() => {
@@ -30,8 +28,6 @@ export function useTween(target: number): number {
     const from = shownRef.current
     if (from === target) return
 
-    // Reduced motion still goes through one frame rather than a synchronous
-    // setState: there is one code path, and no render-inside-effect cascade.
     const duration = prefersReducedMotion() ? 0 : DURATION_MS
 
     let start: number | null = null

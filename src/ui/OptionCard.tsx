@@ -7,12 +7,9 @@ interface OptionCardProps {
   title: string
   kicker?: string
   price: string
-  /** Secondary copy. Replaced by `blockedReason` when the option is blocked. */
   line?: string
-  /** Silhouette or swatch. Without one the card shows a radio/check mark. */
   media?: ReactNode
   selected: boolean
-  /** Packages toggle independently of each other: square mark, not round. */
   multi?: boolean
   blockedReason?: string | null
   onSelect: () => void
@@ -45,8 +42,6 @@ export function OptionCard({
     .join(' ')
 
   return (
-    // aria-disabled, not `disabled`: a disabled button leaves the tab order, so
-    // a keyboard user could never land on it to hear *why* it is unavailable.
     <button
       type="button"
       className={className}
@@ -77,9 +72,6 @@ export function OptionCard({
     </button>
   )
 }
-
-// Everything inside a <button> must be phrasing content, so these are spans
-// styled as lists and grids rather than <ul>/<div>.
 
 export function CardTags({ items }: { items: readonly string[] }) {
   return (

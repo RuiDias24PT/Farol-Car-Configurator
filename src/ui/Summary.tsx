@@ -29,8 +29,6 @@ export function Summary() {
   const t = useT()
   const { intl } = useLang()
 
-  // Same rows the total is summed from, so the list and the figure below it
-  // cannot disagree.
   const rows = lines(config)
 
   return (

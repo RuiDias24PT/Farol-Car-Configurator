@@ -10,8 +10,6 @@ import { CardContents, CardSpecs, CardTags, OptionCard } from './OptionCard'
 import { Silhouette } from './Silhouette'
 import { Summary } from './Summary'
 
-/** The body of the step panel: one card per catalogue entry for the current
- *  step, or the summary on the last one. */
 export function StepOptions() {
   const config = useConfig()
   const dispatch = useDispatch()

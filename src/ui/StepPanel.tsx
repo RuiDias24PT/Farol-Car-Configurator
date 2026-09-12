@@ -32,9 +32,6 @@ export function StepPanel({ children }: StepPanelProps) {
 
       <NotesStrip onDismissed={() => body.current?.focus()} />
 
-      {/* Keyed by step so each step opens scrolled to the top instead of
-          inheriting the previous step's scroll position. tabIndex -1 makes it a
-          focus target for code (NotesStrip) without adding a Tab stop. */}
       <div className="panel-body" key={current} ref={body} tabIndex={-1}>
         {children}
       </div>

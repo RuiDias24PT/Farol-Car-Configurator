@@ -15,8 +15,6 @@ export function PriceBar() {
   return (
     <div className="price-figure">
       <div className="price-label">{t.ui.priceLabel}</div>
-      {/* The rolling digits are for the eye only; a screen reader gets the
-          settled figure instead of every in-between frame. */}
       <div className="price-num" aria-hidden="true">
         {formatEUR(shown, intl)}
       </div>
