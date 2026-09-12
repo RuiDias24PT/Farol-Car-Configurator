@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 
+import type { Config } from '@/catalog/types'
+
 import { hashFor, parseHash } from './url'
 import { useConfig, useDispatch } from './useStore'
 
@@ -41,6 +43,10 @@ export function useUrlSync(): string {
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [dispatch])
 
+  return shareUrlFor(config)
+}
+
+export function shareUrlFor(config: Config): string {
   const { origin, pathname, search } = window.location
   return `${origin}${pathname}${search}${hashFor(config)}`
 }

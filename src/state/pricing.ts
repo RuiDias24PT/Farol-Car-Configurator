@@ -1,15 +1,24 @@
-import type { Config } from '@/catalog/types'
+import type {
+  BodyId,
+  ColourId,
+  Config,
+  PackageId,
+  PowertrainId,
+  WheelId,
+} from '@/catalog/types'
 
 import { resolve } from './constraints'
 
-export type PriceSource =
-  'body' | 'powertrain' | 'colour' | 'wheels' | 'package'
+// A union rather than `id: string`, so the summary can look a row up in the
+// locale by its id without a cast: checking `source` narrows `id`.
+export type PriceLine =
+  | { source: 'body'; id: BodyId; price: number }
+  | { source: 'powertrain'; id: PowertrainId; price: number }
+  | { source: 'colour'; id: ColourId; price: number }
+  | { source: 'wheels'; id: WheelId; price: number }
+  | { source: 'package'; id: PackageId; price: number }
 
-export interface PriceLine {
-  source: PriceSource
-  id: string
-  price: number
-}
+export type PriceSource = PriceLine['source']
 
 export function lines(config: Config): readonly PriceLine[] {
   const { body, powertrain, colour, wheels, packages } = resolve(config)

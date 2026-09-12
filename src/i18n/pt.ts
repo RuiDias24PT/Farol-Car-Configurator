@@ -71,6 +71,8 @@ export const pt = {
     copied: 'Copiado',
     reserveNote: 'Protótipo: a reserva termina aqui.',
     linkFixed: 'Ajustei o link:',
+    shareLink: 'Link desta configuração',
+    dismiss: 'Fechar aviso',
   },
 
   views: { front: '3/4 frente', side: 'perfil', rear: '3/4 trás', top: 'alto' },

@@ -34,6 +34,8 @@ export const en = {
     copied: 'Copied',
     reserveNote: 'Prototype: the booking flow ends here.',
     linkFixed: 'I adjusted the link:',
+    shareLink: 'Link to this configuration',
+    dismiss: 'Dismiss notice',
   },
 
   views: { front: 'front 3/4', side: 'profile', rear: 'rear 3/4', top: 'high' },

@@ -1,0 +1,39 @@
+.notes {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 12px 0;
+  padding: 9px 10px 9px 14px;
+  background: var(--warn-tint);
+  color: var(--warn);
+  border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+  border-radius: 9px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.notes ul {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.notes li + li {
+  margin-top: 4px;
+}
+
+.notes-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.notes-close:hover {
+  background: color-mix(in srgb, var(--warn) 15%, transparent);
+}
