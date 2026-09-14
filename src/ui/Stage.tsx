@@ -1,39 +1,25 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 
+import { VIEWS } from '@/catalog'
+import type { ViewId } from '@/catalog/types'
 import { useLang, useT } from '@/i18n/useT'
+import { CarViewProvider } from '@/scene/CarViewContext'
+import { useCarView } from '@/scene/useCarView'
 import { resolve } from '@/state/constraints'
 import { formatNumber } from '@/state/pricing'
 import { useConfig } from '@/state/useStore'
 
-import { CarViewProvider } from '@/scene/CarViewContext'
-import type { CarView } from '@/scene/useCarView'
-import { useCarView } from '@/scene/useCarView'
-
 import './Stage.css'
 
-// M10 documents three camera presets (flank / front / rear) against the
-// four keys the locale carries (front / side / rear / top) — 'flank' and
-// 'side' are the same idea under different names. 'top' has no preset:
-// M10 never defined one, so it stays disabled rather than guessing azimuth
-// and elevation for a view nothing asked for.
-const VIEWS = ['front', 'side', 'rear', 'top'] as const
-const PRESET_VIEWS: readonly CarView[] = ['front', 'side', 'rear']
-
-function isPresetView(view: (typeof VIEWS)[number]): view is CarView {
-  return (PRESET_VIEWS as readonly string[]).includes(view)
-}
-
 interface StageProps {
-  /** The 3D scene (M10). Renders beneath the overlay chrome below. */
+  /** The 3D scene. Renders beneath the overlay chrome below. */
   children?: ReactNode
 }
 
 export function Stage({ children }: StageProps) {
-  // CarViewProvider has to be an ancestor of the buttons that call
-  // setView() *and* of CarScene (arriving via children), which is exactly
-  // why this outer component exists separately from StageContent below —
-  // a component can't consume a context it provides itself.
+  // The view buttons and CarScene (arriving as children) both have to sit
+  // under the provider, and a component can't consume a context it provides.
   return (
     <CarViewProvider>
       <StageContent>{children}</StageContent>
@@ -46,7 +32,8 @@ function StageContent({ children }: StageProps) {
   const t = useT()
   const { intl } = useLang()
   const { setView } = useCarView()
-  const [activeView, setActiveView] = useState<CarView | null>(null)
+  // The camera opens beside the first preset, so that button starts lit.
+  const [activeView, setActiveView] = useState<ViewId>(VIEWS[0].id)
 
   const { body, powertrain, colour, wheels } = resolve(config)
 
@@ -65,19 +52,17 @@ function StageContent({ children }: StageProps) {
       </div>
 
       <div className="views">
-        {VIEWS.map((view) => (
+        {VIEWS.map(({ id }) => (
           <button
-            key={view}
+            key={id}
             type="button"
-            className={`view-btn${view === activeView ? ' is-active' : ''}`}
-            disabled={!isPresetView(view)}
+            className={`view-btn${id === activeView ? ' is-active' : ''}`}
             onClick={() => {
-              if (!isPresetView(view)) return
-              setView(view)
-              setActiveView(view)
+              setView(id)
+              setActiveView(id)
             }}
           >
-            {t.views[view]}
+            {t.views[id]}
           </button>
         ))}
       </div>

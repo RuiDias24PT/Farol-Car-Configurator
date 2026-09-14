@@ -1,50 +1,55 @@
 import * as THREE from 'three'
 
 /**
- * A softbox-lit backdrop, drawn into a canvas rather than loaded from an
- * image file — keeps the scene asset-free. This is what
- * PMREMGenerator turns into the reflections a clearcoat paint needs:
- * without an environment map, clearcoat and the wheels' fully-metallic rim
- * material have nothing to reflect and render close to black.
+ * A studio drawn into a canvas rather than loaded from a file, so the scene
+ * needs no assets. The softboxes are what sweep across the paint as the car
+ * turns; without an environment, clearcoat and the metal rims have nothing
+ * to reflect and go dark.
  */
-function paintStudioCanvas(dark: boolean): HTMLCanvasElement {
+function paintStudio(dark: boolean): HTMLCanvasElement {
   const canvas = document.createElement('canvas')
-  canvas.width = 512
-  canvas.height = 256
+  canvas.width = 768
+  canvas.height = 384
   const ctx = canvas.getContext('2d')!
+  const { width, height } = canvas
 
-  const sky = ctx.createLinearGradient(0, 0, 0, canvas.height)
-  if (dark) {
-    sky.addColorStop(0, '#3c4550')
-    sky.addColorStop(0.5, '#1c2126')
-    sky.addColorStop(1, '#0a0d10')
-  } else {
-    sky.addColorStop(0, '#e9edf0')
-    sky.addColorStop(0.5, '#a9b2b8')
-    sky.addColorStop(1, '#454c52')
-  }
+  const sky = ctx.createLinearGradient(0, 0, 0, height)
+  const stops: [number, string][] = dark
+    ? [
+        [0, '#3c4550'],
+        [0.42, '#232a31'],
+        [0.52, '#151a1f'],
+        [1, '#0a0d10'],
+      ]
+    : [
+        [0, '#e9edf0'],
+        [0.42, '#c3ccd3'],
+        [0.53, '#8b959c'],
+        [1, '#454c52'],
+      ]
+  stops.forEach(([offset, colour]) => sky.addColorStop(offset, colour))
   ctx.fillStyle = sky
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillRect(0, 0, width, height)
 
-  // Three overhead softbox highlights — what actually sweeps across
-  // clearcoat paint as the camera orbits, not the flat sky gradient.
-  for (const x of [0.2, 0.5, 0.8]) {
-    const box = ctx.createRadialGradient(
-      x * canvas.width,
-      canvas.height * 0.12,
-      0,
-      x * canvas.width,
-      canvas.height * 0.12,
-      canvas.width * 0.12,
-    )
-    box.addColorStop(
-      0,
-      dark ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.7)',
-    )
-    box.addColorStop(1, 'rgba(255,255,255,0)')
-    ctx.fillStyle = box
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+  const softboxes = [
+    [0.1, 0.06, 0.2, 0.16],
+    [0.44, 0.02, 0.22, 0.2],
+    [0.78, 0.08, 0.16, 0.14],
+  ]
+  for (const [bx, by, bw, bh] of softboxes) {
+    const x = bx * width
+    const y = by * height
+    const w = bw * width
+    const h = bh * height
+    const glow = ctx.createLinearGradient(0, y, 0, y + h)
+    glow.addColorStop(0, `rgba(255,255,255,${dark ? 0.9 : 0.78})`)
+    glow.addColorStop(1, 'rgba(255,255,255,0)')
+    ctx.fillStyle = glow
+    ctx.fillRect(x, y, w, h)
   }
+
+  ctx.fillStyle = `rgba(255,255,255,${dark ? 0.05 : 0.28})`
+  ctx.fillRect(0, height * 0.49, width, height * 0.02)
 
   return canvas
 }
@@ -59,11 +64,15 @@ export function buildStudioEnvironment(
   dark: boolean,
 ): StudioEnvironment {
   const pmrem = new THREE.PMREMGenerator(renderer)
-  const source = new THREE.CanvasTexture(paintStudioCanvas(dark))
+  const source = new THREE.CanvasTexture(paintStudio(dark))
   source.mapping = THREE.EquirectangularReflectionMapping
+  // PMREMGenerator renders this into a 3D-array target, and WebGL2 refuses
+  // flipY/premultiplyAlpha on 3D uploads (it logs rather than throws).
+  // CanvasTexture turns flipY on by default.
+  source.flipY = false
+  source.premultiplyAlpha = false
 
   const target = pmrem.fromEquirectangular(source)
-
   source.dispose()
   pmrem.dispose()
 

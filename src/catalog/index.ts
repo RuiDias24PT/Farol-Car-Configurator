@@ -5,6 +5,7 @@ import type {
   Package,
   Powertrain,
   StepId,
+  ViewPreset,
   Wheel,
   WheelId,
 } from './types'
@@ -192,6 +193,14 @@ export const STEPS = [
   'packages',
   'summary',
 ] as const satisfies readonly StepId[]
+
+// The stage's camera presets, in button order.
+export const VIEWS = [
+  { id: 'front', azimuth: -0.8, elevation: 0.2 },
+  { id: 'side', azimuth: 0, elevation: 0.1 },
+  { id: 'rear', azimuth: 0.95, elevation: 0.2 },
+  { id: 'top', azimuth: -0.8, elevation: 0.58 },
+] as const satisfies readonly ViewPreset[]
 
 // Every correction the engine makes to the wheels lands here, so this wheel
 // has to stay free and unrestricted: one that cost money would quietly make a

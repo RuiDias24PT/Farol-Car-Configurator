@@ -1,15 +1,5 @@
 import type { BodyGeo } from '@/catalog/types'
 
-/**
- * The car outline, as an SVG path, from the same `geo` the 3D scene extrudes
- * (SPEC §1). It lives here rather than in `ui/` because M10's `buildBody` needs
- * the identical curve — a second copy is exactly what the shared parameter set
- * exists to prevent.
- *
- * Coordinate frame: SVG's, so y grows downward. `roof` is the smallest y,
- * `GROUND` the largest.
- */
-
 /** y of the surface both wheels rest on. */
 export const GROUND = 358
 

@@ -74,12 +74,6 @@
   border-color: var(--accent);
   color: var(--accent);
 }
-/* Inert until M10 wires the camera. Say so visually rather than shipping four
- * buttons that look live. */
-.view-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
 
 .stage-specs {
   position: absolute;

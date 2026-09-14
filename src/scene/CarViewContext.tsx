@@ -1,26 +1,25 @@
 import { useCallback, useRef } from 'react'
 import type { ReactNode } from 'react'
 
-import type { CarView } from './useCarView'
+import type { ViewId } from '@/catalog/types'
+
 import { CarViewContext } from './useCarView'
 
+type SetView = (view: ViewId) => void
+
 /**
- * Bridges Stage.tsx's view buttons to CarScene's camera. They're siblings
- * under <Stage> — Stage only ever sees CarScene as an opaque `children`
- * slot — so this exists specifically to cross that gap without prop
- * drilling through a ReactNode.
+ * Bridges Stage.tsx's view buttons to CarScene's camera. Stage only ever
+ * sees CarScene as an opaque `children` slot, so this crosses that gap
+ * without prop drilling through a ReactNode.
  */
 export function CarViewProvider({ children }: { children: ReactNode }) {
-  const handlerRef = useRef<((view: CarView) => void) | null>(null)
+  const handlerRef = useRef<SetView | null>(null)
 
-  const registerSetView = useCallback(
-    (handler: ((view: CarView) => void) | null) => {
-      handlerRef.current = handler
-    },
-    [],
-  )
+  const registerSetView = useCallback((handler: SetView | null) => {
+    handlerRef.current = handler
+  }, [])
 
-  const setView = useCallback((view: CarView) => {
+  const setView = useCallback((view: ViewId) => {
     handlerRef.current?.(view)
   }, [])
 

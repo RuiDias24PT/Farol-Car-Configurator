@@ -1,17 +1,14 @@
 import { createContext, useContext } from 'react'
 
-// Only three of Stage.tsx's four view keys have a camera preset — 'top'
-// stays disabled there until M10 defines one. See the comment on VIEWS in
-// Stage.tsx for why the fourth key exists without a matching preset.
-export type CarView = 'front' | 'side' | 'rear'
+import type { ViewId } from '@/catalog/types'
 
-type SetView = (view: CarView) => void
+type SetView = (view: ViewId) => void
 
 export interface CarViewContextValue {
-  /** Safe to call even before CarScene has mounted — it's a no-op then. */
+  /** Safe to call before CarScene has mounted — it's a no-op then. */
   setView: SetView
-  /** Called by useCarScene.ts to publish (or, with null, retract) the
-   *  live scene's handler. Not meant for UI code. */
+  /** For useCarScene.ts to publish (or, with null, retract) the live
+   *  scene's handler. Not meant for UI code. */
   registerSetView: (handler: SetView | null) => void
 }
 

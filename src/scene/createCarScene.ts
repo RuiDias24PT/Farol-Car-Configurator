@@ -1,39 +1,53 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
-import { BODIES, COLOURS, POWERTRAINS } from '@/catalog'
-import type { BodyId, Config, PowertrainId, WheelId } from '@/catalog/types'
+import { BODIES, COLOURS, POWERTRAINS, VIEWS } from '@/catalog'
+import type {
+  BodyId,
+  Config,
+  PowertrainId,
+  ViewId,
+  WheelId,
+} from '@/catalog/types'
 
-import { buildBody, halfWidth, up } from './buildBody'
+import { buildBody } from './buildBody'
 import { buildLamps } from './buildLamps'
 import { buildWheel } from './buildWheel'
+import {
+  applyEnvironment,
+  createMaterials,
+  disposeMaterials,
+} from './materials'
 import { buildStudioEnvironment } from './studioEnvironment'
-import type { CarView } from './useCarView'
 
-// flank (side) sits at azimuth 0, front at -90°, rear at +90°, all measured
-// around the target. No preset elevation — setView keeps whatever tilt the
-// camera is already at, it only swings the horizontal angle.
-const VIEW_AZIMUTH: Record<CarView, number> = {
-  side: 0,
-  front: -Math.PI / 2,
-  rear: Math.PI / 2,
-}
+// The field of view is vertical, so the distance is derived from the width:
+// the car then fills the same share of the stage whatever the window shape.
+const CAR_FILL = 2520
+const MIN_RADIUS = 1120
+const MAX_RADIUS = 2150
+
+const MIN_ELEVATION = 0.04
+const MAX_ELEVATION = 0.62
+const AUTO_ROTATE_STEP = 0.0018
+const RESUME_AFTER_DRAG_MS = 4000
+const RESUME_AFTER_VIEW_MS = 6000
+const VIEW_TWEEN_MS = 620
+
+// These intensities were tuned under three's legacy light units, removed in
+// r155. Multiplying by π gives the same result under the physical ones.
+const LEGACY_LIGHT = Math.PI
 
 export interface CarScene {
   resize(width: number, height: number): void
   update(config: Config): void
   refreshTheme(): void
-  setView(view: CarView): void
+  setView(view: ViewId): void
   render(): void
   dispose(): void
 }
 
-// Matches useTheme.ts's own resolution order. Read independently here
-// rather than threading that hook's value in, because useTheme() has no
-// shared state to thread — it's local state read only by ThemeToggle.tsx,
-// so a second call here wouldn't see that component's changes. Reading the
-// DOM directly sidesteps that; see useCarScene.ts for how refreshTheme()
-// actually gets called when it changes.
+// Matches useTheme.ts's own resolution order. Read from the DOM because
+// useTheme() is local state inside ThemeToggle.tsx — there's no shared
+// value to subscribe to. useCarScene.ts calls refreshTheme() on changes.
 function isDarkTheme(): boolean {
   const attr = document.documentElement.getAttribute('data-theme')
   if (attr === 'dark') return true
@@ -41,40 +55,47 @@ function isDarkTheme(): boolean {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
 }
 
-function disposeObject(object: THREE.Object3D) {
+function disposeGeometries(object: THREE.Object3D) {
   object.traverse((child) => {
-    if (!(child instanceof THREE.Mesh)) return
-    child.geometry.dispose()
-    const materials = Array.isArray(child.material)
-      ? child.material
-      : [child.material]
-    materials.forEach((material) => material.dispose())
+    if (child instanceof THREE.Mesh) child.geometry.dispose()
   })
+}
+
+const easeInOut = (t: number) =>
+  t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2
+
+/** Into (-π, π], so a preset always swings the short way round. */
+function wrapAngle(angle: number): number {
+  const turn = Math.PI * 2
+  return ((((angle + Math.PI) % turn) + turn) % turn) - Math.PI
 }
 
 export function createCarScene(
   canvas: HTMLCanvasElement,
   initialConfig: Config,
 ): CarScene {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
+  // alpha: true lets Stage.css's gradient show through the empty canvas.
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: true,
+    alpha: true,
+  })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
+  renderer.toneMappingExposure = 0.6
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  renderer.shadowMap.type = THREE.PCFShadowMap
 
   const scene = new THREE.Scene()
   let environment = buildStudioEnvironment(renderer, isDarkTheme())
-  scene.environment = environment.texture
 
-  const camera = new THREE.PerspectiveCamera(35, 1, 20, 8000)
-  const controls = new OrbitControls(camera, renderer.domElement)
-  controls.enableDamping = true
+  const camera = new THREE.PerspectiveCamera(26, 1.9, 20, 8000)
 
-  scene.add(new THREE.HemisphereLight(0xdfe8ee, 0x1a1f23, 0.6))
-  const key = new THREE.DirectionalLight(0xffffff, 1.1)
+  const key = new THREE.DirectionalLight(0xffffff, 1.05 * LEGACY_LIGHT)
+  key.position.set(-260, 620, 420)
   key.castShadow = true
   key.shadow.mapSize.set(1024, 1024)
-  key.shadow.bias = -0.0015
+  key.shadow.bias = -0.0012
   Object.assign(key.shadow.camera, {
     left: -600,
     right: 600,
@@ -84,87 +105,154 @@ export function createCarScene(
     far: 1800,
   })
   key.shadow.camera.updateProjectionMatrix()
-  scene.add(key, key.target)
 
-  const ground = new THREE.Mesh(
+  const fill = new THREE.DirectionalLight(0xc9dcea, 0.34 * LEGACY_LIGHT)
+  fill.position.set(500, 320, -420)
+
+  const rim = new THREE.DirectionalLight(0xffffff, 0.5 * LEGACY_LIGHT)
+  rim.position.set(320, 220, 520)
+
+  const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(4000, 4000),
-    new THREE.ShadowMaterial({ opacity: 0.35 }),
+    new THREE.ShadowMaterial({ opacity: 0.4 }),
   )
-  ground.rotation.x = -Math.PI / 2
-  ground.receiveShadow = true
-  scene.add(ground)
+  floor.rotation.x = -Math.PI / 2
+  floor.receiveShadow = true
 
-  // The car itself: everything here gets torn down and rebuilt together
-  // whenever body, wheels or powertrain change. Colour does not touch any
-  // of this — see applyColour below.
-  let car: THREE.Object3D[] = []
-  let paintMaterial: THREE.MeshPhysicalMaterial | null = null
-  let currentBody: BodyId | null = null
-  let currentWheel: WheelId | null = null
-  let currentPowertrain: PowertrainId | null = null
+  scene.add(
+    key,
+    key.target,
+    fill,
+    rim,
+    new THREE.HemisphereLight(0xdfe8ee, 0x1a1f23, 0.14 * LEGACY_LIGHT),
+    floor,
+  )
 
-  function rebuildCar(config: Config) {
-    car.forEach((object) => {
-      disposeObject(object)
-      scene.remove(object)
-    })
+  // --- camera orbit ---
 
-    const geo = BODIES.find((b) => b.id === config.body)!.geo
+  const target = new THREE.Vector3(450, 150, 0)
+  let radius = 1500
+  let azimuth = -0.78
+  let elevation = 0.2
+  let autoRotate = true
+  let idleTimer: number | undefined
+  let drag: { x: number; y: number } | null = null
+  let tween: {
+    fromAzimuth: number
+    fromElevation: number
+    deltaAzimuth: number
+    toElevation: number
+    start: number
+  } | null = null
+  const reducedMotion =
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+
+  function pauseAutoRotate() {
+    autoRotate = false
+    window.clearTimeout(idleTimer)
+  }
+
+  function resumeAutoRotateAfter(ms: number) {
+    window.clearTimeout(idleTimer)
+    idleTimer = window.setTimeout(() => {
+      autoRotate = true
+    }, ms)
+  }
+
+  const onPointerDown = (event: PointerEvent) => {
+    drag = { x: event.clientX, y: event.clientY }
+    tween = null
+    pauseAutoRotate()
+    canvas.setPointerCapture(event.pointerId)
+  }
+  const onPointerMove = (event: PointerEvent) => {
+    if (!drag) return
+    azimuth -= (event.clientX - drag.x) * 0.007
+    elevation = THREE.MathUtils.clamp(
+      elevation + (event.clientY - drag.y) * 0.004,
+      MIN_ELEVATION,
+      MAX_ELEVATION,
+    )
+    drag = { x: event.clientX, y: event.clientY }
+  }
+  const onPointerUp = () => {
+    if (!drag) return
+    drag = null
+    resumeAutoRotateAfter(RESUME_AFTER_DRAG_MS)
+  }
+  canvas.addEventListener('pointerdown', onPointerDown)
+  canvas.addEventListener('pointermove', onPointerMove)
+  canvas.addEventListener('pointerup', onPointerUp)
+  canvas.addEventListener('pointercancel', onPointerUp)
+
+  // --- the car ---
+
+  // Shared across rebuilds: a rebuild only swaps geometry.
+  const materials = createMaterials()
+  applyEnvironment(materials, environment.texture)
+  const car = new THREE.Group()
+  scene.add(car)
+
+  let built: {
+    body: BodyId
+    wheels: WheelId
+    powertrain: PowertrainId
+  } | null = null
+
+  function rebuild(config: Config) {
+    car.children.forEach(disposeGeometries)
+    car.clear()
+
+    const { geo } = BODIES.find((b) => b.id === config.body)!
     const powertrain = POWERTRAINS.find((p) => p.id === config.powertrain)!
-
-    const body = buildBody(geo)
-    const lamps = buildLamps(geo, powertrain)
+    const body = buildBody(geo, materials)
+    car.add(body.group, buildLamps(geo, body.halfWidth, powertrain, materials))
 
     const wheelRadius = geo.wr
     const wheelWidth = wheelRadius * 0.56
-    const wheelZ = halfWidth(geo) - wheelWidth / 2
-    const wheels = [geo.fa, geo.ra].flatMap((axleX) =>
-      ([1, -1] as const).map((side) => {
-        const wheel = buildWheel(config.wheels, wheelRadius, wheelWidth)
-        wheel.position.set(axleX, wheelRadius, side * wheelZ)
-        if (side < 0) wheel.rotation.y = Math.PI
-        return wheel
-      }),
-    )
+    const wheelZ = body.halfWidth * 0.99 - wheelWidth * 0.42
+    for (const axle of [geo.fa, geo.ra]) {
+      for (const sgn of [1, -1]) {
+        const wheel = buildWheel(
+          config.wheels,
+          wheelRadius,
+          wheelWidth,
+          materials,
+        )
+        wheel.position.set(axle, wheelRadius, sgn * wheelZ)
+        if (sgn < 0) wheel.rotation.y = Math.PI
+        car.add(wheel)
+      }
+    }
 
-    car = [body.mesh, lamps, ...wheels]
-    car.forEach((object) => scene.add(object))
-    paintMaterial = body.paintMaterial
-
-    // Re-target the orbit and the shadow-casting light on the new body's
-    // centre — bodies differ in length and roofline, so the old pivot can
-    // sit outside the new car entirely otherwise. The camera's own
-    // position is left alone (see below): only the very first build
-    // frames it, so a body swap doesn't yank the view out from under
-    // someone who's already orbited.
-    const bottom = up(geo.rocker)
-    const top = up(geo.roof)
+    // One distance for the whole range: switching body shows the real
+    // difference in size instead of reframing every car to fit.
     const centreX = (geo.nose + geo.tail) / 2
-    const centreY = (bottom + top) / 2
-    controls.target.set(centreX, centreY, 0)
-    key.target.position.set(centreX, 0, 0)
+    target.set(centreX, 168, 0)
+    key.target.position.set(centreX, 60, 0)
     key.target.updateMatrixWorld()
 
-    if (currentBody === null) {
-      camera.position.set(centreX + 900, centreY + 500, 900)
+    built = {
+      body: config.body,
+      wheels: config.wheels,
+      powertrain: config.powertrain,
     }
-    controls.update()
-
-    currentBody = config.body
-    currentWheel = config.wheels
-    currentPowertrain = config.powertrain
   }
 
   function update(config: Config) {
-    const needsRebuild =
-      config.body !== currentBody ||
-      config.wheels !== currentWheel ||
-      config.powertrain !== currentPowertrain
+    if (
+      built?.body !== config.body ||
+      built.wheels !== config.wheels ||
+      built.powertrain !== config.powertrain
+    ) {
+      rebuild(config)
+    }
 
-    if (needsRebuild) rebuildCar(config)
-
-    const hex = COLOURS.find((c) => c.id === config.colour)!.hex
-    paintMaterial?.color.set(hex)
+    const colour = COLOURS.find((c) => c.id === config.colour)!
+    materials.paint.color.set(colour.hex)
+    // A solid white needs far less metalness than the metallics to stay
+    // white rather than going grey.
+    materials.paint.metalness = colour.metallic ? 0.3 : 0.08
   }
 
   update(initialConfig)
@@ -173,45 +261,67 @@ export function createCarScene(
     resize(width, height) {
       renderer.setSize(width, height, false)
       camera.aspect = width / height
+      radius = THREE.MathUtils.clamp(
+        CAR_FILL / camera.aspect,
+        MIN_RADIUS,
+        MAX_RADIUS,
+      )
       camera.updateProjectionMatrix()
     },
     update,
     setView(view) {
-      // Re-derive radius and elevation from the camera's current position
-      // rather than storing them — the user may have zoomed or tilted with
-      // the mouse since the last preset, and a preset should only change
-      // the horizontal angle, not silently reset those too.
-      const offset = camera.position.clone().sub(controls.target)
-      const radius = offset.length()
-      const elevation = Math.asin(
-        THREE.MathUtils.clamp(offset.y / radius, -1, 1),
-      )
-      const azimuth = VIEW_AZIMUTH[view]
-
-      camera.position.set(
-        controls.target.x + radius * Math.sin(azimuth) * Math.cos(elevation),
-        controls.target.y + radius * Math.sin(elevation),
-        controls.target.z + radius * Math.cos(azimuth) * Math.cos(elevation),
-      )
-      controls.update()
+      const preset = VIEWS.find((v) => v.id === view)!
+      pauseAutoRotate()
+      tween = {
+        fromAzimuth: azimuth,
+        fromElevation: elevation,
+        deltaAzimuth: wrapAngle(preset.azimuth - azimuth),
+        toElevation: preset.elevation,
+        start: performance.now(),
+      }
     },
     refreshTheme() {
-      // Dark and light studios are different environments, not a
-      // different background — rebuild the whole map, don't just recolour
-      // the existing one.
+      // Dark and light studios are different environments, not a different
+      // background: rebuild the map rather than tint it.
       environment.dispose()
       environment = buildStudioEnvironment(renderer, isDarkTheme())
-      scene.environment = environment.texture
+      applyEnvironment(materials, environment.texture)
     },
     render() {
-      controls.update()
+      if (tween) {
+        const t = Math.min((performance.now() - tween.start) / VIEW_TWEEN_MS, 1)
+        const eased = easeInOut(t)
+        azimuth = tween.fromAzimuth + tween.deltaAzimuth * eased
+        elevation =
+          tween.fromElevation +
+          (tween.toElevation - tween.fromElevation) * eased
+        if (t === 1) {
+          tween = null
+          resumeAutoRotateAfter(RESUME_AFTER_VIEW_MS)
+        }
+      } else if (autoRotate && !reducedMotion) {
+        azimuth -= AUTO_ROTATE_STEP
+      }
+
+      camera.position.set(
+        target.x + radius * Math.sin(azimuth) * Math.cos(elevation),
+        target.y + radius * Math.sin(elevation),
+        target.z + radius * Math.cos(azimuth) * Math.cos(elevation),
+      )
+      camera.lookAt(target)
       renderer.render(scene, camera)
     },
     dispose() {
-      controls.dispose()
+      canvas.removeEventListener('pointerdown', onPointerDown)
+      canvas.removeEventListener('pointermove', onPointerMove)
+      canvas.removeEventListener('pointerup', onPointerUp)
+      canvas.removeEventListener('pointercancel', onPointerUp)
+      window.clearTimeout(idleTimer)
+      car.children.forEach(disposeGeometries)
+      disposeMaterials(materials)
+      floor.geometry.dispose()
+      floor.material.dispose()
       environment.dispose()
-      car.forEach(disposeObject)
-      disposeObject(ground)
       renderer.dispose()
     },
   }

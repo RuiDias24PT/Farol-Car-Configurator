@@ -2,115 +2,108 @@ import * as THREE from 'three'
 
 import type { BodyGeo, Powertrain } from '@/catalog/types'
 
-import { halfWidth, up } from './buildBody'
+import { up } from './buildBody'
+import type { CarMaterials } from './materials'
 
 /**
- * Headlights, grille, taillights, exhausts and the charge flap / fuel cap.
- * Only the last three actually vary by powertrain — an EV has no grille to
- * breathe through and no exhaust to breathe out of, a hybrid keeps one
- * pipe, and only electrified cars get a flap instead of a cap.
+ * Lights, grille, exhausts and the filler. Grille, exhausts and filler vary
+ * by powertrain: an EV has nothing to cool through the nose and nothing to
+ * breathe out, a hybrid keeps one pipe, and electrified cars get a charge
+ * flap instead of a fuel cap.
  */
-export function buildLamps(geo: BodyGeo, powertrain: Powertrain): THREE.Group {
+export function buildLamps(
+  geo: BodyGeo,
+  halfWidth: number,
+  powertrain: Powertrain,
+  materials: CarMaterials,
+): THREE.Group {
   const group = new THREE.Group()
-  const hw = halfWidth(geo)
-  const side = hw * 0.9
-
-  const lampMat = new THREE.MeshStandardMaterial({
-    color: 0xdfeaf4,
-    roughness: 0.15,
-  })
-  const tailMat = new THREE.MeshStandardMaterial({
-    color: 0xb3202a,
-    roughness: 0.2,
-  })
-  const darkMat = new THREE.MeshStandardMaterial({
-    color: 0x161b20,
-    roughness: 0.85,
-  })
-  const trimMat = new THREE.MeshStandardMaterial({
-    color: 0x14181b,
-    roughness: 0.55,
-  })
-
-  const hoodY = up(geo.belt + geo.hoodDrop) - 20
-  for (const sgn of [1, -1] as const) {
-    const headlight = new THREE.Mesh(new THREE.BoxGeometry(34, 14, 40), lampMat)
-    headlight.position.set(geo.nose + 18, hoodY, sgn * (side - 26))
-    group.add(headlight)
+  const add = (
+    geometry: THREE.BufferGeometry,
+    material: THREE.Material,
+    x: number,
+    y: number,
+    z: number,
+  ) => {
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.set(x, y, z)
+    group.add(mesh)
+    return mesh
   }
 
-  // Electric cars don't need to breathe — no grille.
-  if (powertrain.id !== 'ev') {
-    const grille = new THREE.Mesh(
-      new THREE.BoxGeometry(18, 34, hw * 1.3),
-      darkMat,
-    )
-    grille.position.set(geo.nose + 7, up(geo.rocker) + 46, 0)
-    group.add(grille)
-  }
-
+  const isEv = powertrain.id === 'ev'
+  const side = halfWidth * 0.9
+  const rockerY = up(geo.rocker)
+  const lampY = up(geo.belt + geo.hoodDrop) - 20
   const tailY = up(geo.belt + 34)
-  for (const sgn of [1, -1] as const) {
-    const taillight = new THREE.Mesh(new THREE.BoxGeometry(22, 16, 40), tailMat)
-    taillight.position.set(geo.tail - 12, tailY, sgn * (side - 10))
-    group.add(taillight)
+
+  const headlight = new THREE.BoxGeometry(34, 14, 40)
+  const taillight = new THREE.BoxGeometry(22, 16, 40)
+  for (const sgn of [1, -1]) {
+    add(headlight, materials.lamp, geo.nose + 18, lampY, sgn * (side - 26))
+    add(taillight, materials.tail, geo.tail - 12, tailY, sgn * (side - 10))
   }
-  const bar = new THREE.Mesh(new THREE.BoxGeometry(12, 8, hw * 1.5), tailMat)
-  bar.position.set(geo.tail - 8, tailY, 0)
-  group.add(bar)
 
-  const rearBumper = new THREE.Mesh(
-    new THREE.BoxGeometry(14, 26, hw * 1.3),
-    trimMat,
-  )
-  rearBumper.position.set(geo.tail - 6, up(geo.rocker) + 38, 0)
-  group.add(rearBumper)
-
-  // Two pipes on petrol, one on hybrid, none on an EV.
-  const exhaustSides =
-    powertrain.id === 'ice'
-      ? ([1, -1] as const)
-      : powertrain.id === 'hybrid'
-        ? ([1] as const)
-        : ([] as const)
-  for (const sgn of exhaustSides) {
-    const pipe = new THREE.Mesh(
-      new THREE.CylinderGeometry(7.5, 7.5, 18, 18),
-      trimMat,
+  if (!isEv) {
+    add(
+      new THREE.BoxGeometry(18, 34, halfWidth * 1.3),
+      materials.dark,
+      geo.nose + 7,
+      rockerY + 46,
+      0,
     )
-    pipe.rotation.z = Math.PI / 2
-    pipe.position.set(geo.tail - 6, up(geo.rocker) + 4, sgn * hw * 0.68)
-    group.add(pipe)
   }
 
+  add(
+    new THREE.BoxGeometry(12, 8, halfWidth * 1.5),
+    materials.tail,
+    geo.tail - 8,
+    tailY,
+    0,
+  )
+  add(
+    new THREE.BoxGeometry(14, 26, halfWidth * 1.3),
+    materials.trim,
+    geo.tail - 6,
+    rockerY + 38,
+    0,
+  )
+
+  const pipes: number[] = isEv ? [] : powertrain.id === 'hybrid' ? [1] : [-1, 1]
+  const pipe = new THREE.CylinderGeometry(7.5, 7.5, 18, 18)
+  for (const sgn of pipes) {
+    add(
+      pipe,
+      materials.rim,
+      geo.tail - 6,
+      rockerY + 4,
+      sgn * halfWidth * 0.68,
+    ).rotation.z = Math.PI / 2
+  }
+
+  // One filler, on the flank the default views face.
   const flapX = geo.tail - 92
   const flapY = up(geo.belt) - 26
-  const flapZ = hw * 0.99 + 1
+  const flapZ = halfWidth * 0.99 + 1
   if (powertrain.electrified) {
-    const flap = new THREE.Mesh(new THREE.BoxGeometry(32, 24, 5), darkMat)
-    flap.position.set(flapX, flapY, flapZ)
-    group.add(flap)
-
-    if (powertrain.id === 'ev') {
-      const led = new THREE.Mesh(
+    add(new THREE.BoxGeometry(32, 24, 5), materials.dark, flapX, flapY, flapZ)
+    if (isEv) {
+      add(
         new THREE.SphereGeometry(3.4, 14, 12),
-        new THREE.MeshStandardMaterial({
-          color: 0x3fbf95,
-          emissive: 0x2f8f70,
-          emissiveIntensity: 0.9,
-        }),
+        materials.charge,
+        flapX + 9,
+        flapY + 6,
+        flapZ + 2.6,
       )
-      led.position.set(flapX + 9, flapY + 6, flapZ + 2.6)
-      group.add(led)
     }
   } else {
-    const cap = new THREE.Mesh(
+    add(
       new THREE.CylinderGeometry(11, 11, 5, 22),
-      darkMat,
-    )
-    cap.rotation.x = Math.PI / 2
-    cap.position.set(flapX, flapY, flapZ)
-    group.add(cap)
+      materials.dark,
+      flapX,
+      flapY,
+      flapZ,
+    ).rotation.x = Math.PI / 2
   }
 
   return group

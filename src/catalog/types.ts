@@ -5,6 +5,15 @@ export type WheelId = 'aero19' | 'sport20' | 'multi21'
 export type PackageId = 'winter' | 'assist' | 'sound' | 'tow'
 export type StepId =
   'body' | 'powertrain' | 'colour' | 'wheels' | 'packages' | 'summary'
+export type ViewId = 'front' | 'side' | 'rear' | 'top'
+
+// Radians around the car: azimuth 0 faces the flank, -π/2 the nose, +π/2
+// the tail.
+export interface ViewPreset {
+  id: ViewId
+  azimuth: number
+  elevation: number
+}
 
 export interface BodyGeo {
   wr: number
