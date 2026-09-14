@@ -31,6 +31,12 @@ export function useCarScene(config: Config) {
     if (!canvas || !parent) return
 
     const scene = createCarScene(canvas, initialConfigRef.current)
+    // Without WebGL the rest of the stage still works; an uncaught throw
+    // here would unmount the whole app instead.
+    if (!scene) {
+      canvas.hidden = true
+      return
+    }
     sceneRef.current = scene
     scene.resize(parent.clientWidth, parent.clientHeight)
     registerSetView(scene.setView)
@@ -55,11 +61,12 @@ export function useCarScene(config: Config) {
     const onColorSchemeChange = () => scene.refreshTheme()
     colorSchemeQuery?.addEventListener('change', onColorSchemeChange)
 
-    let frame = requestAnimationFrame(loop)
-    function loop() {
+    let frame = 0
+    const loop = () => {
       scene.render()
       frame = requestAnimationFrame(loop)
     }
+    frame = requestAnimationFrame(loop)
 
     return () => {
       cancelAnimationFrame(frame)

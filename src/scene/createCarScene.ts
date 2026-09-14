@@ -70,16 +70,24 @@ function wrapAngle(angle: number): number {
   return ((((angle + Math.PI) % turn) + turn) % turn) - Math.PI
 }
 
+/** Null when the browser can't give us WebGL — the caller decides what then. */
 export function createCarScene(
   canvas: HTMLCanvasElement,
   initialConfig: Config,
-): CarScene {
-  // alpha: true lets Stage.css's gradient show through the empty canvas.
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: true,
-    alpha: true,
-  })
+): CarScene | null {
+  let renderer: THREE.WebGLRenderer
+  try {
+    // alpha: true lets Stage.css's gradient show through the empty canvas.
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+    })
+  } catch {
+    // Blocked GPU, old device, or jsdom in tests. Only this is caught: any
+    // other failure below is a bug and should still surface.
+    return null
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 0.6

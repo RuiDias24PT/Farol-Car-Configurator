@@ -27,6 +27,11 @@
 .stage > canvas:active {
   cursor: grabbing;
 }
+/* Set by useCarScene when there's no WebGL; display: block above would
+ * otherwise keep an undrawable canvas — and its grab cursor — on screen. */
+.stage > canvas[hidden] {
+  display: none;
+}
 
 .stage-tag {
   position: absolute;
