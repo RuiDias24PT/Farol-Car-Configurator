@@ -27,6 +27,11 @@
 .stage > canvas:active {
   cursor: grabbing;
 }
+/* Set by useCarScene when there's no WebGL; display: block above would
+ * otherwise keep an undrawable canvas — and its grab cursor — on screen. */
+.stage > canvas[hidden] {
+  display: none;
+}
 
 .stage-tag {
   position: absolute;
@@ -73,12 +78,6 @@
 .view-btn.is-active {
   border-color: var(--accent);
   color: var(--accent);
-}
-/* Inert until M10 wires the camera. Say so visually rather than shipping four
- * buttons that look live. */
-.view-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .stage-specs {

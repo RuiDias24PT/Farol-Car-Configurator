@@ -1,27 +1,39 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 
+import { VIEWS } from '@/catalog'
+import type { ViewId } from '@/catalog/types'
 import { useLang, useT } from '@/i18n/useT'
+import { CarViewProvider } from '@/scene/CarViewContext'
+import { useCarView } from '@/scene/useCarView'
 import { resolve } from '@/state/constraints'
 import { formatNumber } from '@/state/pricing'
 import { useConfig } from '@/state/useStore'
 
 import './Stage.css'
 
-// These are camera presets and belong in src/catalog/ with their azimuths — but
-// M10 documents three (flank / front / rear) against the four keys the locale
-// carries (front / side / rear / top). Reconciling that is M10's call, not
-// something to invent here, so they stay local and inert for now.
-const VIEWS = ['front', 'side', 'rear', 'top'] as const
-
 interface StageProps {
-  /** The 3D scene (M10). Renders beneath the overlay chrome below. */
+  /** The 3D scene. Renders beneath the overlay chrome below. */
   children?: ReactNode
 }
 
 export function Stage({ children }: StageProps) {
+  // The view buttons and CarScene (arriving as children) both have to sit
+  // under the provider, and a component can't consume a context it provides.
+  return (
+    <CarViewProvider>
+      <StageContent>{children}</StageContent>
+    </CarViewProvider>
+  )
+}
+
+function StageContent({ children }: StageProps) {
   const config = useConfig()
   const t = useT()
   const { intl } = useLang()
+  const { setView } = useCarView()
+  // The camera opens beside the first preset, so that button starts lit.
+  const [activeView, setActiveView] = useState<ViewId>(VIEWS[0].id)
 
   const { body, powertrain, colour, wheels } = resolve(config)
 
@@ -40,9 +52,17 @@ export function Stage({ children }: StageProps) {
       </div>
 
       <div className="views">
-        {VIEWS.map((view) => (
-          <button key={view} type="button" className="view-btn" disabled>
-            {t.views[view]}
+        {VIEWS.map(({ id }) => (
+          <button
+            key={id}
+            type="button"
+            className={`view-btn${id === activeView ? ' is-active' : ''}`}
+            onClick={() => {
+              setView(id)
+              setActiveView(id)
+            }}
+          >
+            {t.views[id]}
           </button>
         ))}
       </div>
