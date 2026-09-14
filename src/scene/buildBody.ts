@@ -41,8 +41,19 @@ export function buildBody(geo: BodyGeo): THREE.Group {
 
   geometry.translate(0, 0, -depth / 2)
 
-  const material = new THREE.MeshStandardMaterial({ color: 0x888888 })
+  // Clearcoat over the base paint is what makes it read as car paint
+  // rather than plastic — it needs scene.environment to actually reflect
+  // anything, which createCarScene.ts supplies.
+  const material = new THREE.MeshPhysicalMaterial({
+    color: 0x888888,
+    metalness: 0.26,
+    roughness: 0.38,
+    clearcoat: 0.8,
+    clearcoatRoughness: 0.1,
+    envMapIntensity: 0.65,
+  })
   const mesh = new THREE.Mesh(geometry, material)
+  mesh.castShadow = true
 
   const group = new THREE.Group()
   group.add(mesh)
