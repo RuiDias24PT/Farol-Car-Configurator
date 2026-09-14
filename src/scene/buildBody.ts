@@ -27,7 +27,14 @@ function toShape(geo: BodyGeo): THREE.Shape {
   return new THREE.Shape(points)
 }
 
-export function buildBody(geo: BodyGeo): THREE.Group {
+export interface BuiltBody {
+  mesh: THREE.Group
+  // Exposed so a colour change can set .color directly instead of
+  // rebuilding the body — colour is an update, not a rebuild.
+  paintMaterial: THREE.MeshPhysicalMaterial
+}
+
+export function buildBody(geo: BodyGeo): BuiltBody {
   const depth = halfWidth(geo) * 2 - BEVEL * 2
 
   const geometry = new THREE.ExtrudeGeometry(toShape(geo), {
@@ -57,5 +64,5 @@ export function buildBody(geo: BodyGeo): THREE.Group {
 
   const group = new THREE.Group()
   group.add(mesh)
-  return group
+  return { mesh: group, paintMaterial: material }
 }

@@ -1,32 +1,17 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
-import { BODIES, DEFAULT_CONFIG, POWERTRAINS } from '@/catalog'
+import { BODIES, COLOURS, POWERTRAINS } from '@/catalog'
+import type { BodyId, Config, PowertrainId, WheelId } from '@/catalog/types'
 
 import { buildBody, halfWidth, up } from './buildBody'
 import { buildLamps } from './buildLamps'
 import { buildWheel } from './buildWheel'
 import { buildStudioEnvironment } from './studioEnvironment'
 
-// Not yet driven by the user's actual selection — that's the next slice,
-// once rebuild-on-change exists. For now every scene shows the default body,
-// wheel and powertrain.
-const PLACEHOLDER_GEO = BODIES[0].geo
-const PLACEHOLDER_WHEEL = DEFAULT_CONFIG.wheels
-const PLACEHOLDER_POWERTRAIN = POWERTRAINS.find(
-  (p) => p.id === DEFAULT_CONFIG.powertrain,
-)!
-
-const bottom = up(PLACEHOLDER_GEO.rocker)
-const top = up(PLACEHOLDER_GEO.roof)
-const centre = new THREE.Vector3(
-  (PLACEHOLDER_GEO.nose + PLACEHOLDER_GEO.tail) / 2,
-  (bottom + top) / 2,
-  0,
-)
-
 export interface CarScene {
   resize(width: number, height: number): void
+  update(config: Config): void
   render(): void
   dispose(): void
 }
@@ -52,7 +37,10 @@ function disposeObject(object: THREE.Object3D) {
   })
 }
 
-export function createCarScene(canvas: HTMLCanvasElement): CarScene {
+export function createCarScene(
+  canvas: HTMLCanvasElement,
+  initialConfig: Config,
+): CarScene {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -64,16 +52,11 @@ export function createCarScene(canvas: HTMLCanvasElement): CarScene {
   scene.environment = environment.texture
 
   const camera = new THREE.PerspectiveCamera(35, 1, 20, 8000)
-  camera.position.set(centre.x + 900, centre.y + 500, 900)
-
   const controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
-  controls.target.copy(centre)
-  controls.update()
 
   scene.add(new THREE.HemisphereLight(0xdfe8ee, 0x1a1f23, 0.6))
   const key = new THREE.DirectionalLight(0xffffff, 1.1)
-  key.position.set(centre.x - 400, centre.y + 900, 600)
   key.castShadow = true
   key.shadow.mapSize.set(1024, 1024)
   key.shadow.bias = -0.0015
@@ -86,7 +69,6 @@ export function createCarScene(canvas: HTMLCanvasElement): CarScene {
     far: 1800,
   })
   key.shadow.camera.updateProjectionMatrix()
-  key.target.position.set(centre.x, 0, 0)
   scene.add(key, key.target)
 
   const ground = new THREE.Mesh(
@@ -97,29 +79,80 @@ export function createCarScene(canvas: HTMLCanvasElement): CarScene {
   ground.receiveShadow = true
   scene.add(ground)
 
-  const body = buildBody(PLACEHOLDER_GEO)
-  scene.add(body)
+  // The car itself: everything here gets torn down and rebuilt together
+  // whenever body, wheels or powertrain change. Colour does not touch any
+  // of this — see applyColour below.
+  let car: THREE.Object3D[] = []
+  let paintMaterial: THREE.MeshPhysicalMaterial | null = null
+  let currentBody: BodyId | null = null
+  let currentWheel: WheelId | null = null
+  let currentPowertrain: PowertrainId | null = null
 
-  const lamps = buildLamps(PLACEHOLDER_GEO, PLACEHOLDER_POWERTRAIN)
-  scene.add(lamps)
+  function rebuildCar(config: Config) {
+    car.forEach((object) => {
+      disposeObject(object)
+      scene.remove(object)
+    })
 
-  const wheelRadius = PLACEHOLDER_GEO.wr
-  const wheelWidth = wheelRadius * 0.56
-  const wheelZ = halfWidth(PLACEHOLDER_GEO) - wheelWidth / 2
+    const geo = BODIES.find((b) => b.id === config.body)!.geo
+    const powertrain = POWERTRAINS.find((p) => p.id === config.powertrain)!
 
-  const wheels = [PLACEHOLDER_GEO.fa, PLACEHOLDER_GEO.ra].flatMap((axleX) =>
-    ([1, -1] as const).map((side) => {
-      const wheel = buildWheel(PLACEHOLDER_WHEEL, wheelRadius, wheelWidth)
-      wheel.position.set(axleX, wheelRadius, side * wheelZ)
-      // The wheel itself is left/right-symmetric (same rings on both
-      // faces), so this has no visible effect yet — it's here because the
-      // checklist calls it out, and it stops mattering silently once a
-      // wheel gets an asymmetric detail (a valve stem, directional tread).
-      if (side < 0) wheel.rotation.y = Math.PI
-      return wheel
-    }),
-  )
-  wheels.forEach((wheel) => scene.add(wheel))
+    const body = buildBody(geo)
+    const lamps = buildLamps(geo, powertrain)
+
+    const wheelRadius = geo.wr
+    const wheelWidth = wheelRadius * 0.56
+    const wheelZ = halfWidth(geo) - wheelWidth / 2
+    const wheels = [geo.fa, geo.ra].flatMap((axleX) =>
+      ([1, -1] as const).map((side) => {
+        const wheel = buildWheel(config.wheels, wheelRadius, wheelWidth)
+        wheel.position.set(axleX, wheelRadius, side * wheelZ)
+        if (side < 0) wheel.rotation.y = Math.PI
+        return wheel
+      }),
+    )
+
+    car = [body.mesh, lamps, ...wheels]
+    car.forEach((object) => scene.add(object))
+    paintMaterial = body.paintMaterial
+
+    // Re-target the orbit and the shadow-casting light on the new body's
+    // centre — bodies differ in length and roofline, so the old pivot can
+    // sit outside the new car entirely otherwise. The camera's own
+    // position is left alone (see below): only the very first build
+    // frames it, so a body swap doesn't yank the view out from under
+    // someone who's already orbited.
+    const bottom = up(geo.rocker)
+    const top = up(geo.roof)
+    const centreX = (geo.nose + geo.tail) / 2
+    const centreY = (bottom + top) / 2
+    controls.target.set(centreX, centreY, 0)
+    key.target.position.set(centreX, 0, 0)
+    key.target.updateMatrixWorld()
+
+    if (currentBody === null) {
+      camera.position.set(centreX + 900, centreY + 500, 900)
+    }
+    controls.update()
+
+    currentBody = config.body
+    currentWheel = config.wheels
+    currentPowertrain = config.powertrain
+  }
+
+  function update(config: Config) {
+    const needsRebuild =
+      config.body !== currentBody ||
+      config.wheels !== currentWheel ||
+      config.powertrain !== currentPowertrain
+
+    if (needsRebuild) rebuildCar(config)
+
+    const hex = COLOURS.find((c) => c.id === config.colour)!.hex
+    paintMaterial?.color.set(hex)
+  }
+
+  update(initialConfig)
 
   return {
     resize(width, height) {
@@ -127,6 +160,7 @@ export function createCarScene(canvas: HTMLCanvasElement): CarScene {
       camera.aspect = width / height
       camera.updateProjectionMatrix()
     },
+    update,
     render() {
       controls.update()
       renderer.render(scene, camera)
@@ -134,10 +168,8 @@ export function createCarScene(canvas: HTMLCanvasElement): CarScene {
     dispose() {
       controls.dispose()
       environment.dispose()
-      disposeObject(body)
-      disposeObject(lamps)
+      car.forEach(disposeObject)
       disposeObject(ground)
-      wheels.forEach(disposeObject)
       renderer.dispose()
     },
   }

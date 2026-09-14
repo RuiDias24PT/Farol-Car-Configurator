@@ -1,16 +1,35 @@
 import { useEffect, useRef } from 'react'
 
-import { createCarScene } from './createCarScene'
+import type { Config } from '@/catalog/types'
 
-export function useCarScene() {
+import { createCarScene } from './createCarScene'
+import type { CarScene } from './createCarScene'
+
+/**
+ * Owns the scene's lifecycle: creates it once the canvas exists, sizes it to
+ * the `.stage` box (not the window — it's a grid cell, not the viewport),
+ * drives the render loop, and disposes everything on cleanup. StrictMode
+ * double-mounts this in dev, so a leak here means a leak on every real
+ * mount too.
+ *
+ * Config changes are handled separately, by calling update() on the
+ * existing scene rather than tearing it down — see createCarScene.ts for
+ * which changes trigger a rebuild versus a cheap in-place update.
+ */
+export function useCarScene(config: Config) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const sceneRef = useRef<CarScene | null>(null)
+  // Only the value present on the very first render matters here — the
+  // mount effect below intentionally runs once, not on every config change.
+  const initialConfigRef = useRef(config)
 
   useEffect(() => {
     const canvas = canvasRef.current
     const parent = canvas?.parentElement
     if (!canvas || !parent) return
 
-    const scene = createCarScene(canvas)
+    const scene = createCarScene(canvas, initialConfigRef.current)
+    sceneRef.current = scene
     scene.resize(parent.clientWidth, parent.clientHeight)
 
     const observer = new ResizeObserver(([entry]) => {
@@ -29,8 +48,13 @@ export function useCarScene() {
       cancelAnimationFrame(frame)
       observer.disconnect()
       scene.dispose()
+      sceneRef.current = null
     }
   }, [])
+
+  useEffect(() => {
+    sceneRef.current?.update(config)
+  }, [config])
 
   return canvasRef
 }
