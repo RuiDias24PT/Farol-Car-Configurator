@@ -8,11 +8,22 @@ import { buildBody, halfWidth, up } from './buildBody'
 import { buildLamps } from './buildLamps'
 import { buildWheel } from './buildWheel'
 import { buildStudioEnvironment } from './studioEnvironment'
+import type { CarView } from './useCarView'
+
+// flank (side) sits at azimuth 0, front at -90°, rear at +90°, all measured
+// around the target. No preset elevation — setView keeps whatever tilt the
+// camera is already at, it only swings the horizontal angle.
+const VIEW_AZIMUTH: Record<CarView, number> = {
+  side: 0,
+  front: -Math.PI / 2,
+  rear: Math.PI / 2,
+}
 
 export interface CarScene {
   resize(width: number, height: number): void
   update(config: Config): void
   refreshTheme(): void
+  setView(view: CarView): void
   render(): void
   dispose(): void
 }
@@ -165,6 +176,25 @@ export function createCarScene(
       camera.updateProjectionMatrix()
     },
     update,
+    setView(view) {
+      // Re-derive radius and elevation from the camera's current position
+      // rather than storing them — the user may have zoomed or tilted with
+      // the mouse since the last preset, and a preset should only change
+      // the horizontal angle, not silently reset those too.
+      const offset = camera.position.clone().sub(controls.target)
+      const radius = offset.length()
+      const elevation = Math.asin(
+        THREE.MathUtils.clamp(offset.y / radius, -1, 1),
+      )
+      const azimuth = VIEW_AZIMUTH[view]
+
+      camera.position.set(
+        controls.target.x + radius * Math.sin(azimuth) * Math.cos(elevation),
+        controls.target.y + radius * Math.sin(elevation),
+        controls.target.z + radius * Math.cos(azimuth) * Math.cos(elevation),
+      )
+      controls.update()
+    },
     refreshTheme() {
       // Dark and light studios are different environments, not a
       // different background — rebuild the whole map, don't just recolour

@@ -4,6 +4,7 @@ import type { Config } from '@/catalog/types'
 
 import { createCarScene } from './createCarScene'
 import type { CarScene } from './createCarScene'
+import { useCarView } from './useCarView'
 
 /**
  * Owns the scene's lifecycle: creates it once the canvas exists, sizes it to
@@ -22,6 +23,7 @@ export function useCarScene(config: Config) {
   // Only the value present on the very first render matters here — the
   // mount effect below intentionally runs once, not on every config change.
   const initialConfigRef = useRef(config)
+  const { registerSetView } = useCarView()
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -31,6 +33,7 @@ export function useCarScene(config: Config) {
     const scene = createCarScene(canvas, initialConfigRef.current)
     sceneRef.current = scene
     scene.resize(parent.clientWidth, parent.clientHeight)
+    registerSetView(scene.setView)
 
     const observer = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect
@@ -48,9 +51,7 @@ export function useCarScene(config: Config) {
       attributes: true,
       attributeFilter: ['data-theme'],
     })
-    const colorSchemeQuery = window.matchMedia?.(
-      '(prefers-color-scheme: dark)',
-    )
+    const colorSchemeQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
     const onColorSchemeChange = () => scene.refreshTheme()
     colorSchemeQuery?.addEventListener('change', onColorSchemeChange)
 
@@ -65,9 +66,13 @@ export function useCarScene(config: Config) {
       observer.disconnect()
       themeObserver.disconnect()
       colorSchemeQuery?.removeEventListener('change', onColorSchemeChange)
+      registerSetView(null)
       scene.dispose()
       sceneRef.current = null
     }
+    // registerSetView is stable (useCallback with no deps in
+    // CarViewContext.tsx) — this effect is still mount-once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
