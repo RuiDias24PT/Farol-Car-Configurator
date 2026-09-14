@@ -38,6 +38,22 @@ export function useCarScene(config: Config) {
     })
     observer.observe(parent)
 
+    // Two separate sources for "the theme changed": an explicit
+    // light/dark pick (the data-theme attribute ThemeToggle.tsx sets) and
+    // the "auto" case, which tracks the OS preference instead. useTheme.ts
+    // has no shared state to subscribe to for either — see the comment on
+    // isDarkTheme() in createCarScene.ts.
+    const themeObserver = new MutationObserver(() => scene.refreshTheme())
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+    const colorSchemeQuery = window.matchMedia?.(
+      '(prefers-color-scheme: dark)',
+    )
+    const onColorSchemeChange = () => scene.refreshTheme()
+    colorSchemeQuery?.addEventListener('change', onColorSchemeChange)
+
     let frame = requestAnimationFrame(loop)
     function loop() {
       scene.render()
@@ -47,6 +63,8 @@ export function useCarScene(config: Config) {
     return () => {
       cancelAnimationFrame(frame)
       observer.disconnect()
+      themeObserver.disconnect()
+      colorSchemeQuery?.removeEventListener('change', onColorSchemeChange)
       scene.dispose()
       sceneRef.current = null
     }

@@ -12,13 +12,17 @@ import { buildStudioEnvironment } from './studioEnvironment'
 export interface CarScene {
   resize(width: number, height: number): void
   update(config: Config): void
+  refreshTheme(): void
   render(): void
   dispose(): void
 }
 
-// Read once at creation, matching useTheme.ts's own resolution order. Not
-// live — the scene doesn't yet re-read this when the user flips the theme
-// toggle, that's refreshTheme(), still to come.
+// Matches useTheme.ts's own resolution order. Read independently here
+// rather than threading that hook's value in, because useTheme() has no
+// shared state to thread — it's local state read only by ThemeToggle.tsx,
+// so a second call here wouldn't see that component's changes. Reading the
+// DOM directly sidesteps that; see useCarScene.ts for how refreshTheme()
+// actually gets called when it changes.
 function isDarkTheme(): boolean {
   const attr = document.documentElement.getAttribute('data-theme')
   if (attr === 'dark') return true
@@ -48,7 +52,7 @@ export function createCarScene(
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
   const scene = new THREE.Scene()
-  const environment = buildStudioEnvironment(renderer, isDarkTheme())
+  let environment = buildStudioEnvironment(renderer, isDarkTheme())
   scene.environment = environment.texture
 
   const camera = new THREE.PerspectiveCamera(35, 1, 20, 8000)
@@ -161,6 +165,14 @@ export function createCarScene(
       camera.updateProjectionMatrix()
     },
     update,
+    refreshTheme() {
+      // Dark and light studios are different environments, not a
+      // different background — rebuild the whole map, don't just recolour
+      // the existing one.
+      environment.dispose()
+      environment = buildStudioEnvironment(renderer, isDarkTheme())
+      scene.environment = environment.texture
+    },
     render() {
       controls.update()
       renderer.render(scene, camera)
