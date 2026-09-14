@@ -1,16 +1,20 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
-import { BODIES, DEFAULT_CONFIG } from '@/catalog'
+import { BODIES, DEFAULT_CONFIG, POWERTRAINS } from '@/catalog'
 
 import { buildBody, halfWidth, up } from './buildBody'
+import { buildLamps } from './buildLamps'
 import { buildWheel } from './buildWheel'
 
 // Not yet driven by the user's actual selection — that's the next slice,
-// once rebuild-on-change exists. For now every scene shows the default body
-// and wheel.
+// once rebuild-on-change exists. For now every scene shows the default body,
+// wheel and powertrain.
 const PLACEHOLDER_GEO = BODIES[0].geo
 const PLACEHOLDER_WHEEL = DEFAULT_CONFIG.wheels
+const PLACEHOLDER_POWERTRAIN = POWERTRAINS.find(
+  (p) => p.id === DEFAULT_CONFIG.powertrain,
+)!
 
 const bottom = up(PLACEHOLDER_GEO.rocker)
 const top = up(PLACEHOLDER_GEO.roof)
@@ -58,6 +62,9 @@ export function createCarScene(canvas: HTMLCanvasElement): CarScene {
   const body = buildBody(PLACEHOLDER_GEO)
   scene.add(body)
 
+  const lamps = buildLamps(PLACEHOLDER_GEO, PLACEHOLDER_POWERTRAIN)
+  scene.add(lamps)
+
   const wheelRadius = PLACEHOLDER_GEO.wr
   const wheelWidth = wheelRadius * 0.56
   const wheelZ = halfWidth(PLACEHOLDER_GEO) - wheelWidth / 2
@@ -89,6 +96,7 @@ export function createCarScene(canvas: HTMLCanvasElement): CarScene {
     dispose() {
       controls.dispose()
       disposeObject(body)
+      disposeObject(lamps)
       wheels.forEach(disposeObject)
       renderer.dispose()
     },
