@@ -2,13 +2,13 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 import { BODIES } from '@/catalog'
-import { GROUND } from '@/geometry/bodyPath'
 
+import { buildBody, up } from './buildBody'
+
+// Not yet driven by the user's actual selection — that's the next slice,
+// once rebuild-on-change exists. For now every scene shows the default body.
 const PLACEHOLDER_GEO = BODIES[0].geo
-const up = (y: number) => GROUND - y
 
-const length = PLACEHOLDER_GEO.tail - PLACEHOLDER_GEO.nose
-const halfWidth = length / 4.75
 const bottom = up(PLACEHOLDER_GEO.rocker)
 const top = up(PLACEHOLDER_GEO.roof)
 const centre = new THREE.Vector3(
@@ -21,6 +21,17 @@ export interface CarScene {
   resize(width: number, height: number): void
   render(): void
   dispose(): void
+}
+
+function disposeObject(object: THREE.Object3D) {
+  object.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return
+    child.geometry.dispose()
+    const materials = Array.isArray(child.material)
+      ? child.material
+      : [child.material]
+    materials.forEach((material) => material.dispose())
+  })
 }
 
 export function createCarScene(canvas: HTMLCanvasElement): CarScene {
@@ -41,12 +52,8 @@ export function createCarScene(canvas: HTMLCanvasElement): CarScene {
   key.position.set(centre.x - 400, centre.y + 900, 600)
   scene.add(key)
 
-  const box = new THREE.Mesh(
-    new THREE.BoxGeometry(length, top - bottom, halfWidth * 2),
-    new THREE.MeshStandardMaterial({ color: 0x888888 }),
-  )
-  box.position.copy(centre)
-  scene.add(box)
+  const body = buildBody(PLACEHOLDER_GEO)
+  scene.add(body)
 
   return {
     resize(width, height) {
@@ -60,8 +67,7 @@ export function createCarScene(canvas: HTMLCanvasElement): CarScene {
     },
     dispose() {
       controls.dispose()
-      box.geometry.dispose()
-      ;(box.material as THREE.Material).dispose()
+      disposeObject(body)
       renderer.dispose()
     },
   }
