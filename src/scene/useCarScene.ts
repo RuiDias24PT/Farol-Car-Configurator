@@ -47,11 +47,6 @@ export function useCarScene(config: Config) {
     })
     observer.observe(parent)
 
-    // Two separate sources for "the theme changed": an explicit
-    // light/dark pick (the data-theme attribute ThemeToggle.tsx sets) and
-    // the "auto" case, which tracks the OS preference instead. useTheme.ts
-    // has no shared state to subscribe to for either — see the comment on
-    // isDarkTheme() in createCarScene.ts.
     const themeObserver = new MutationObserver(() => scene.refreshTheme())
     themeObserver.observe(document.documentElement, {
       attributes: true,
