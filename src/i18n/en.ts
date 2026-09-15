@@ -26,6 +26,7 @@ export const en = {
     next: 'Continue',
     reserve: 'Reserve',
     theme: 'Theme',
+    themes: { auto: 'Automatic', light: 'Light', dark: 'Dark' },
     language: 'Language',
     info: 'Information',
     shareText:

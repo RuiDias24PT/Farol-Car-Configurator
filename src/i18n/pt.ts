@@ -63,6 +63,7 @@ export const pt = {
     next: 'Continuar',
     reserve: 'Reservar',
     theme: 'Tema',
+    themes: { auto: 'Automático', light: 'Claro', dark: 'Escuro' },
     language: 'Idioma',
     info: 'Informação',
     shareText:
