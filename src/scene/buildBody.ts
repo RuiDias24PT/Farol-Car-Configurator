@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 
 import type { BodyGeo } from '@/catalog/types'
-import { GROUND } from '@/geometry/bodyPath'
+import { GROUND } from '@/domain/bodyPath'
 
 import type { CarMaterials } from './materials'
 

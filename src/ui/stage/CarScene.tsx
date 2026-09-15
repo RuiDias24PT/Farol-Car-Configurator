@@ -1,5 +1,6 @@
-import { useCarScene } from '@/scene/useCarScene'
 import { useConfig } from '@/state/useStore'
+
+import { useCarScene } from './useCarScene'
 
 /** Rendered as a direct child of `.stage` — see the `.stage > canvas` rule in Stage.css. */
 export function CarScene() {

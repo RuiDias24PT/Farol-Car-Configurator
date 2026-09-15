@@ -1,8 +1,8 @@
 import { BODIES, COLOURS, PACKAGES, POWERTRAINS, WHEELS } from '@/catalog'
 import { formatBlocked } from '@/i18n'
 import { useLang, useT } from '@/i18n/useT'
-import { availability } from '@/state/constraints'
-import { formatEUR, formatNumber } from '@/state/pricing'
+import { availability } from '@/domain/constraints'
+import { formatEUR, formatNumber } from '@/domain/pricing'
 import { useSteps } from '@/state/useSteps'
 import { useConfig, useDispatch } from '@/state/useStore'
 

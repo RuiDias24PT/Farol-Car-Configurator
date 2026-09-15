@@ -2,8 +2,8 @@ import { useEffect, useId, useState } from 'react'
 
 import type { Locale } from '@/i18n'
 import { useLang, useT } from '@/i18n/useT'
-import { formatEUR, lines, total } from '@/state/pricing'
-import type { PriceLine } from '@/state/pricing'
+import { formatEUR, lines, total } from '@/domain/pricing'
+import type { PriceLine } from '@/domain/pricing'
 import { shareUrlFor } from '@/state/useUrlSync'
 import { useConfig } from '@/state/useStore'
 

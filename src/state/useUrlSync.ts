@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 
 import type { Config } from '@/catalog/types'
+import { hashFor, parseHash } from '@/domain/url'
 
-import { hashFor, parseHash } from './url'
 import { useConfig, useDispatch } from './useStore'
 
 export function useUrlSync(): string {

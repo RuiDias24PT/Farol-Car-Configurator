@@ -4,9 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DEFAULT_CONFIG } from '@/catalog'
 import type { Config } from '@/catalog/types'
+import { hashFor } from '@/domain/url'
 
 import { StoreProvider } from './StoreContext'
-import { hashFor } from './url'
 import { useUrlSync } from './useUrlSync'
 import { useConfig, useDispatch } from './useStore'
 

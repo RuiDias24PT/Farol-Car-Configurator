@@ -1,6 +1,6 @@
 import type { BodyId, PackageId, WheelId } from '@/catalog/types'
 
-import type { Note } from '@/state/constraints'
+import type { Note } from '@/domain/constraints'
 
 import type { BodyRef, Locale } from './pt'
 

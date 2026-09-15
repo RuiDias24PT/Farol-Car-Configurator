@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { useLang, useT } from '@/i18n/useT'
-import { formatEUR, total } from '@/state/pricing'
+import { formatEUR, total } from '@/domain/pricing'
 import { useSteps } from '@/state/useSteps'
 import { useConfig } from '@/state/useStore'
 

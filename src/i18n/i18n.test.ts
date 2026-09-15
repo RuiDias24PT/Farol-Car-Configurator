@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-import type { Note } from '@/state/constraints'
+import type { Note } from '@/domain/constraints'
 
 import { de } from './de'
 import { en } from './en'

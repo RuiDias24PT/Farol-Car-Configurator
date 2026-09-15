@@ -3,12 +3,13 @@ import type { ReactNode } from 'react'
 
 import { VIEWS } from '@/catalog'
 import type { ViewId } from '@/catalog/types'
+import { resolve } from '@/domain/constraints'
+import { formatNumber } from '@/domain/pricing'
 import { useLang, useT } from '@/i18n/useT'
-import { CarViewProvider } from '@/scene/CarViewContext'
-import { useCarView } from '@/scene/useCarView'
-import { resolve } from '@/state/constraints'
-import { formatNumber } from '@/state/pricing'
 import { useConfig } from '@/state/useStore'
+
+import { CarViewProvider } from './CarViewContext'
+import { useCarView } from './useCarView'
 
 import './Stage.css'
 

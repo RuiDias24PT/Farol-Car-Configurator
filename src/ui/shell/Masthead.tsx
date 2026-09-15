@@ -1,5 +1,5 @@
 import { useT } from '@/i18n/useT'
-import { resolve } from '@/state/constraints'
+import { resolve } from '@/domain/constraints'
 import { useConfig, useDispatch } from '@/state/useStore'
 
 import { InfoPopover } from './InfoPopover'

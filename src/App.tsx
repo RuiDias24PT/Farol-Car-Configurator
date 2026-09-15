@@ -1,6 +1,6 @@
-import { AppShell } from './ui/AppShell'
-import { CarScene } from './ui/CarScene'
-import { StepOptions } from './ui/StepOptions'
+import { AppShell } from './ui/shell/AppShell'
+import { CarScene } from './ui/stage/CarScene'
+import { StepOptions } from './ui/steps/StepOptions'
 import { useUrlSync } from './state/useUrlSync'
 
 export default function App() {

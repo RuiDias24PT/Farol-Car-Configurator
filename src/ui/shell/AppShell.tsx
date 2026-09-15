@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react'
 
+// Import order is cascade order: AppShell.css must load before the stylesheets
+// the region components pull in.
 import './AppShell.css'
 import { Masthead } from './Masthead'
-import { Stage } from './Stage'
-import { StepPanel } from './StepPanel'
-import { StepRail } from './StepRail'
+import { Stage } from '@/ui/stage/Stage'
+import { StepPanel } from '@/ui/steps/StepPanel'
+import { StepRail } from '@/ui/steps/StepRail'
 
 interface AppShellProps {
   stage?: ReactNode

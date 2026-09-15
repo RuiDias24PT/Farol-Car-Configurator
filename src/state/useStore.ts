@@ -2,9 +2,8 @@ import { createContext, useContext } from 'react'
 import type { Dispatch } from 'react'
 
 import type { Config } from '@/catalog/types'
-
-import type { Note } from './constraints'
-import type { Action, StoreState } from './reducer'
+import type { Note } from '@/domain/constraints'
+import type { Action, StoreState } from '@/domain/reducer'
 
 export const StoreStateContext = createContext<StoreState | null>(null)
 export const StoreDispatchContext = createContext<Dispatch<Action> | null>(null)

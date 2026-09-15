@@ -2,8 +2,8 @@ import { useReducer } from 'react'
 import type { ReactNode } from 'react'
 
 import type { Config } from '@/catalog/types'
+import { initStore, reducer } from '@/domain/reducer'
 
-import { initStore, reducer } from './reducer'
 import { StoreDispatchContext, StoreStateContext } from './useStore'
 
 interface StoreProviderProps {

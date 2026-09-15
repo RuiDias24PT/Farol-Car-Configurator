@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import App from '@/App'
 import { LangProvider } from '@/i18n/LangContext'
 import { StoreProvider } from '@/state/StoreContext'
-import { parseHash } from '@/state/url'
+import { parseHash } from '@/domain/url'
 
 function renderApp(hash = '') {
   window.history.replaceState(null, '', `/${hash}`)

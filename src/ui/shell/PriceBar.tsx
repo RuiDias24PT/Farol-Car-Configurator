@@ -1,5 +1,5 @@
 import { useLang, useT } from '@/i18n/useT'
-import { formatEUR, total } from '@/state/pricing'
+import { formatEUR, total } from '@/domain/pricing'
 import { useConfig } from '@/state/useStore'
 
 import { useTween } from './useTween'

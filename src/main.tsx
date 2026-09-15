@@ -5,7 +5,7 @@ import './styles/tokens.css'
 import App from './App.tsx'
 import { LangProvider } from './i18n/LangContext'
 import { StoreProvider } from './state/StoreContext'
-import { parseHash } from './state/url'
+import { parseHash } from './domain/url'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
