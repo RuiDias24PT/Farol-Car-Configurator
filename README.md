@@ -6,7 +6,7 @@ configuration lives in a shareable link.
 
 **Live:** https://farol-car-configurator.vercel.app
 
-<!-- TODO: GIF of a full configuration, including a correction note -->
+![A full configuration: Solar, eDrive 450, Carmine Red and 21" wheels, then switching to the Bairro drops the wheels to 20" with a correction note](.github/demo.gif)
 
 The interesting part is not the UI. It is the rule that **every combination on
 screen is buildable**. Whether it came from a click, a hand-edited URL or a
