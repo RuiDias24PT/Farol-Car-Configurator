@@ -14,7 +14,7 @@ export const en = {
   name: 'English',
   tag: 'EN',
   intl: 'en-GB',
-  units: { power: 'hp' },
+  units: { power: 'hp', km: 'km', litres: 'l' },
 
   ui: {
     priceLabel: 'Price as configured',

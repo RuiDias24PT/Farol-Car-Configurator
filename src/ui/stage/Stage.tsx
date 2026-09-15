@@ -5,6 +5,7 @@ import { VIEWS } from '@/catalog'
 import type { ViewId } from '@/catalog/types'
 import { resolve } from '@/domain/constraints'
 import { formatNumber } from '@/domain/pricing'
+import { rangeSpec } from '@/domain/specs'
 import { useLang, useT } from '@/i18n/useT'
 import { useConfig } from '@/state/useStore'
 
@@ -38,8 +39,7 @@ function StageContent({ children }: StageProps) {
 
   const { body, powertrain, colour, wheels } = resolve(config)
 
-  // Prototype quirk: consumption in kWh is shown without decimals.
-  const consumptionDigits = powertrain.consumptionUnit === 'l' ? 1 : 0
+  const range = rangeSpec(powertrain)
 
   return (
     <section className="stage">
@@ -79,8 +79,8 @@ function StageContent({ children }: StageProps) {
         </div>
         <div>
           <b>
-            {formatNumber(powertrain.consumption, consumptionDigits, intl)}{' '}
-            {powertrain.consumptionUnit}
+            {formatNumber(range.value, range.digits, intl)}{' '}
+            {t.units[range.unit]}
           </b>
           <span>{t.powertrains[powertrain.id].rangeLabel}</span>
         </div>

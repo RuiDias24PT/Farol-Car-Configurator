@@ -89,7 +89,7 @@
   pointer-events: none;
 }
 .stage-specs div {
-  text-align: right;
+  text-align: center;
 }
 .stage-specs b {
   display: block;

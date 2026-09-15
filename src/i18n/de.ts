@@ -14,7 +14,7 @@ export const de = {
   name: 'Deutsch',
   tag: 'DE',
   intl: 'de-DE',
-  units: { power: 'PS' },
+  units: { power: 'PS', km: 'km', litres: 'l' },
 
   ui: {
     priceLabel: 'Preis mit Optionen',

@@ -51,7 +51,7 @@ export const pt = {
   name: 'Português',
   tag: 'PT',
   intl: 'pt-PT',
-  units: { power: 'cv' },
+  units: { power: 'cv', km: 'km', litres: 'l' },
 
   ui: {
     priceLabel: 'Preço com opções',
