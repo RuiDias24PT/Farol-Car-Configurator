@@ -65,7 +65,6 @@ describe('ThemeToggle / useTheme', () => {
     expect(root).not.toHaveAttribute('data-theme')
   })
 
-
   it('labels the state in the active language', () => {
     render(
       <LangProvider initialLang="pt">
