@@ -45,9 +45,6 @@ export interface CarScene {
   dispose(): void
 }
 
-// Matches useTheme.ts's own resolution order. Read from the DOM because
-// useTheme() is local state inside ThemeToggle.tsx — there's no shared
-// value to subscribe to. useCarScene.ts calls refreshTheme() on changes.
 function isDarkTheme(): boolean {
   const attr = document.documentElement.getAttribute('data-theme')
   if (attr === 'dark') return true
@@ -95,7 +92,8 @@ export function createCarScene(
   renderer.shadowMap.type = THREE.PCFShadowMap
 
   const scene = new THREE.Scene()
-  let environment = buildStudioEnvironment(renderer, isDarkTheme())
+  let dark = isDarkTheme()
+  let environment = buildStudioEnvironment(renderer, dark)
 
   const camera = new THREE.PerspectiveCamera(26, 1.9, 20, 8000)
 
@@ -289,10 +287,14 @@ export function createCarScene(
       }
     },
     refreshTheme() {
+      const next = isDarkTheme()
+      if (next === dark) return
+      dark = next
+
       // Dark and light studios are different environments, not a different
       // background: rebuild the map rather than tint it.
       environment.dispose()
-      environment = buildStudioEnvironment(renderer, isDarkTheme())
+      environment = buildStudioEnvironment(renderer, dark)
       applyEnvironment(materials, environment.texture)
     },
     render() {

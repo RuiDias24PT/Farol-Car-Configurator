@@ -26,6 +26,7 @@ export const de = {
     next: 'Weiter',
     reserve: 'Reservieren',
     theme: 'Design',
+    themes: { auto: 'Automatisch', light: 'Hell', dark: 'Dunkel' },
     language: 'Sprache',
     info: 'Information',
     shareText:

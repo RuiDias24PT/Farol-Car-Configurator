@@ -32,16 +32,14 @@ export function useTheme(): { theme: Theme; cycleTheme: () => void } {
   }, [theme])
 
   const cycleTheme = useCallback(() => {
-    setTheme((prev) => {
-      const next = ORDER[(ORDER.indexOf(prev) + 1) % ORDER.length]
-      try {
-        localStorage.setItem(KEY, next)
-      } catch {
-        // Storage blocked: the theme still switches, it just won't persist.
-      }
-      return next
-    })
-  }, [])
+    const next = ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length]
+    setTheme(next)
+    try {
+      localStorage.setItem(KEY, next)
+    } catch {
+      // Storage blocked: the theme still switches, it just won't persist.
+    }
+  }, [theme])
 
   return { theme, cycleTheme }
 }

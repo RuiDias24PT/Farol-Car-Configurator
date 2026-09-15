@@ -1,6 +1,8 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 
 import { useT } from '@/i18n/useT'
+
+import { useDismiss } from './useDismiss'
 
 export function InfoPopover() {
   const t = useT()
@@ -9,26 +11,7 @@ export function InfoPopover() {
   const button = useRef<HTMLButtonElement>(null)
   const popId = useId()
 
-  useEffect(() => {
-    if (!open) return
-
-    function onPointerDown(event: PointerEvent) {
-      if (!wrap.current?.contains(event.target as Node)) setOpen(false)
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== 'Escape') return
-      setOpen(false)
-      button.current?.focus()
-    }
-
-    document.addEventListener('pointerdown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
+  useDismiss({ open, setOpen, container: wrap, trigger: button })
 
   return (
     <span className="info-wrap" ref={wrap}>
