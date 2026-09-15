@@ -1,0 +1,2 @@
+# Git hooks run under sh; a CRLF line ending breaks them (e.g. `npx lint-staged\r`).
+* text=auto eol=lf

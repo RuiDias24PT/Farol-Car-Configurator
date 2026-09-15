@@ -243,6 +243,5 @@ export const en = {
 
   legal: [
     'Portfolio prototype. Farol is a fictional marque. The 3D model is generated in code from each body style’s parameters, with no external assets.',
-    'Consumption and emissions figures determined on the WLTP cycle, for comparison purposes. Real figures depend on driving style, road conditions and load. Images are illustrative.',
   ],
 } satisfies Locale

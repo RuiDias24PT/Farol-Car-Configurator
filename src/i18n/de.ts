@@ -243,6 +243,5 @@ export const de = {
 
   legal: [
     'Portfolio-Prototyp. Farol ist eine erfundene Marke. Das 3D-Modell entsteht im Code aus den Parametern jeder Karosserie, ohne externe Dateien.',
-    'Verbrauchs- und Emissionswerte nach WLTP-Zyklus, zu Vergleichszwecken. Die tatsächlichen Werte hängen von Fahrweise, Straßenzustand und Beladung ab. Abbildungen sind beispielhaft.',
   ],
 } satisfies Locale

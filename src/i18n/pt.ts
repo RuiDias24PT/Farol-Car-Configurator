@@ -282,7 +282,6 @@ export const pt = {
 
   legal: [
     'Protótipo de portefólio. Farol é uma marca fictícia. O modelo 3D é gerado por código a partir dos parâmetros de cada carroçaria, sem ficheiros externos.',
-    'Valores de consumo e emissões determinados segundo o ciclo WLTP, para efeitos de comparação. Os valores reais dependem do estilo de condução, do estado da estrada e da carga. Imagens meramente ilustrativas.',
   ],
 }
 
