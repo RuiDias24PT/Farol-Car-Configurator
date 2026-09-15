@@ -126,6 +126,11 @@ npm run typecheck
 npm run build        # production build
 ```
 
+`npm install` also sets up a Husky pre-commit hook. It runs `lint-staged`,
+which formats only the staged files with Prettier before the commit is made, so
+formatting never shows up as a separate diff. To format the whole repo by hand,
+run `npm run format`.
+
 CI runs typecheck, lint, tests and a Prettier check on every push.
 
 ## Stack
